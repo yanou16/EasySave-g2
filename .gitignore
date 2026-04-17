@@ -1,0 +1,29 @@
+# Claude Code
+.claude/
+
+# Build outputs
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.tmp
