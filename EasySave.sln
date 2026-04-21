@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37203.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{9C8CB701-102D-CF49-A3E0-89AC09D42C2C}"
+	ProjectSection(SolutionItems) = preProject
+		DEVLOG_Rayan_Lowst.md = DEVLOG_Rayan_Lowst.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyLog", "..\..\EasySave\EasyLog\EasyLog.csproj", "{92E62EC0-02EE-DDAE-1303-CF4A98C28A92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92E62EC0-02EE-DDAE-1303-CF4A98C28A92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92E62EC0-02EE-DDAE-1303-CF4A98C28A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92E62EC0-02EE-DDAE-1303-CF4A98C28A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92E62EC0-02EE-DDAE-1303-CF4A98C28A92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {72162335-AC62-4876-AEF3-DA92A98322B4}
+	EndGlobalSection
+EndGlobal
