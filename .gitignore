@@ -1,3 +1,15 @@
+# Claude Code
+.claude/
+
+# Build outputs
 bin/
 obj/
+
+# Visual Studio
 .vs/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
