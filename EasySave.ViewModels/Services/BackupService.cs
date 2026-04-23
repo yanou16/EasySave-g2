@@ -1,19 +1,28 @@
 using System.Diagnostics;
+using System.Text.Json;
 using EasyLog.Models;
 using EasyLog.Services;
 using EasySave.Models;
 
 namespace EasySave.ViewModels.Services
 {
+    /// <summary>
+    /// Handles file copying, real-time state tracking and logging for a single backup job.
+    /// Uses EasyLog.Logger for daily log files.
+    /// Writes all jobs states to a single state.json (spec requirement).
+    /// </summary>
     public class BackupService
     {
         private readonly Logger _logger;
-        private readonly StateManager _stateManager;
+        private readonly string _stateFilePath;
+        private readonly List<BackupStateEntry> _allStates;
+        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-        public BackupService(Logger logger, StateManager stateManager)
+        public BackupService(Logger logger, string stateFilePath, List<BackupStateEntry> allStates)
         {
             _logger = logger;
-            _stateManager = stateManager;
+            _stateFilePath = stateFilePath;
+            _allStates = allStates;
         }
 
         public void Execute(BackupJob job)
@@ -27,18 +36,18 @@ namespace EasySave.ViewModels.Services
             int totalFiles = files.Length;
             long totalSize = files.Sum(f => new FileInfo(f).Length);
 
-            var state = new BackupStateEntry
-            {
-                BackupName = job.Name,
-                State = "Active",
-                TotalFiles = totalFiles,
-                TotalSize = totalSize,
-                RemainingFiles = totalFiles,
-                RemainingSize = totalSize,
-                Progress = 0,
-                LastActionTimestamp = Timestamp()
-            };
-            _stateManager.WriteState(state);
+            BackupStateEntry state = GetOrCreateState(job.Name);
+            state.State = "Active";
+            state.TotalFiles = totalFiles;
+            state.TotalSize = totalSize;
+            state.RemainingFiles = totalFiles;
+            state.RemainingSize = totalSize;
+            state.Progress = 0;
+            state.CurrentSourceFile = string.Empty;
+            state.CurrentTargetFile = string.Empty;
+            state.Error = string.Empty;
+            state.LastActionTimestamp = Timestamp();
+            WriteAllStates();
 
             int processed = 0;
             long processedSize = 0;
@@ -64,7 +73,7 @@ namespace EasySave.ViewModels.Services
                 state.CurrentSourceFile = sourceFile;
                 state.CurrentTargetFile = targetFile;
                 state.LastActionTimestamp = Timestamp();
-                _stateManager.WriteState(state);
+                WriteAllStates();
 
                 long transferTimeMs = 0;
                 var stopwatch = Stopwatch.StartNew();
@@ -81,7 +90,6 @@ namespace EasySave.ViewModels.Services
                     state.Error = ex.Message;
                 }
 
-                // Adapted to EasyLog's actual API (Rayan Lowst)
                 _logger.WriteLog(job.Name, sourceFile, targetFile, info.Length, transferTimeMs);
 
                 processed++;
@@ -91,7 +99,7 @@ namespace EasySave.ViewModels.Services
                 state.Progress = totalFiles > 0 ? (double)processed / totalFiles * 100 : 100;
                 state.LastActionTimestamp = Timestamp();
                 state.Error = string.Empty;
-                _stateManager.WriteState(state);
+                WriteAllStates();
             }
 
             state.State = "Inactive";
@@ -101,7 +109,28 @@ namespace EasySave.ViewModels.Services
             state.CurrentSourceFile = string.Empty;
             state.CurrentTargetFile = string.Empty;
             state.LastActionTimestamp = Timestamp();
-            _stateManager.WriteState(state);
+            WriteAllStates();
+        }
+
+        // Writes ALL jobs states into one single state.json (spec: "fichier unique")
+        private void WriteAllStates()
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(_stateFilePath)!);
+                File.WriteAllText(_stateFilePath, JsonSerializer.Serialize(_allStates, JsonOptions));
+            }
+            catch { }
+        }
+
+        private BackupStateEntry GetOrCreateState(string jobName)
+        {
+            var entry = _allStates.FirstOrDefault(s => s.BackupName == jobName);
+            if (entry != null) return entry;
+
+            entry = new BackupStateEntry { BackupName = jobName, State = "Inactive" };
+            _allStates.Add(entry);
+            return entry;
         }
 
         private static string Timestamp() =>

@@ -1,8 +1,13 @@
+using EasyLog.Models;
 using EasySave.Models;
 using EasySave.ViewModels.Services;
 
 namespace EasySave.ViewModels
 {
+    /// <summary>
+    /// Main ViewModel. Orchestrates jobs, services and language.
+    /// The Views layer only talks to this class.
+    /// </summary>
     public class BackupViewModel
     {
         private readonly ConfigService _configService;
@@ -10,6 +15,7 @@ namespace EasySave.ViewModels
         private readonly LanguageService _language;
         private List<BackupJob> _jobs;
 
+        /// <summary>Jobs exposed to the View (read-only).</summary>
         public IReadOnlyList<BackupJob> Jobs => _jobs.AsReadOnly();
 
         public BackupViewModel(ConfigService configService, BackupService backupService, LanguageService language)
@@ -20,6 +26,7 @@ namespace EasySave.ViewModels
             _jobs = configService.LoadJobs();
         }
 
+        /// <summary>Adds a new backup job. Returns success flag + localized message.</summary>
         public (bool Success, string Message) AddJob(string name, string source, string target, BackupType type)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -50,6 +57,7 @@ namespace EasySave.ViewModels
             return (true, _language.Get("JobAdded"));
         }
 
+        /// <summary>Removes a job by 0-based index. Returns success flag + localized message.</summary>
         public (bool Success, string Message) RemoveJob(int index)
         {
             if (index < 0 || index >= _jobs.Count)
@@ -57,7 +65,6 @@ namespace EasySave.ViewModels
 
             _jobs.RemoveAt(index);
 
-            // Re-number IDs to keep them sequential
             for (int i = 0; i < _jobs.Count; i++)
                 _jobs[i].Id = i + 1;
 
@@ -65,6 +72,7 @@ namespace EasySave.ViewModels
             return (true, _language.Get("JobRemoved"));
         }
 
+        /// <summary>Executes one job by 0-based index.</summary>
         public void ExecuteJob(int index)
         {
             if (index < 0 || index >= _jobs.Count)
@@ -73,6 +81,7 @@ namespace EasySave.ViewModels
             _backupService.Execute(_jobs[index]);
         }
 
+        /// <summary>Executes all configured jobs sequentially.</summary>
         public void ExecuteAllJobs()
         {
             foreach (BackupJob job in _jobs)
