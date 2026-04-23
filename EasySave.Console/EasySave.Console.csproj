@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>EasySave.Console</AssemblyName>
+    <RootNamespace>EasySave.Console</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EasyLog\EasyLog.csproj" />
+    <ProjectReference Include="..\EasySave.Models\EasySave.Models.csproj" />
+    <ProjectReference Include="..\EasySave.ViewModels\EasySave.ViewModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

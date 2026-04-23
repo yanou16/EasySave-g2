@@ -1,0 +1,30 @@
+23 April 2026
+
+Task goal:
+Wire up a working console mode for EasySave 1.0 on top of the existing shared layers.
+
+Implementation intent:
+- Add a dedicated console executable instead of mixing console concerns into shared projects.
+- Keep EasyLog, EasySave.Models, and EasySave.ViewModels reusable across versions.
+- Prepare the codebase so we can ship the console version without the GUI, and later ship the GUI without the console (Thanks for the explanation Karim).
+
+Architecture note:
+As Karim explained,build in a way that lets us deliver either version independently.
+Concrete direction taken:
+- Create EasySave.Console as a separate executable project.
+- Keep presentation-specific console code inside that project.
+- Reuse the existing backup orchestration, config handling, logging, and state services.
+- Keep the path open for a future GUI executable that can sit on the same shared logic without bundling console mode in its build.
+
+Files added:
+- EasySave.Console/EasySave.Console.csproj: defines the dedicated console executable project and its shared-project references.
+- EasySave.Console/Program.cs: thin entry point that bootstraps, parses CLI arguments, and starts the console app.
+- EasySave.Console/Bootstrap/AppBootstrapper.cs: builds the shared services and creates the console application context.
+- EasySave.Console/Bootstrap/ConsoleAppContext.cs: carries the instantiated view model, language service, and app paths through the console layer.
+- EasySave.Console/Cli/CommandLineParser.cs: parses command-line backup selections like ranges and explicit lists.
+- EasySave.Console/Cli/CommandLineParseResult.cs: stores the normalized result of command-line parsing.
+- EasySave.Console/ConsoleUi/ConsoleApp.cs: drives interactive mode and command-line execution mode over the shared view model.
+- EasySave.Console/ConsoleUi/ConsoleMenu.cs: renders the console header, menu options, and configured backup jobs.
+- EasySave.Console/ConsoleUi/ConsolePrompts.cs: centralizes console input prompts and basic user-input parsing.
+- EasySave.Console/Resources/en.json: provides English console labels and user-facing messages.
+- EasySave.Console/Resources/fr.json: provides French console labels and user-facing messages.
