@@ -1,238 +1,489 @@
-﻿# EasyLog — Developer Documentation
+# EasySave v1.0
 
-**Version** : 1.0.0  
-**Target framework** : .NET 8.0  
-**Compatibility** : EasySave v1.0 and above (all future versions guaranteed compatible)  
-**Author** : ProSoft — Group 2
+> Professional backup software developed by **ProSoft** — Livrable 01  
+> PGE A3 FISE — Génie Logiciel 2025-2026
 
----
+**Team — Groupe 02**
 
-## Purpose
-
-EasyLog is a standalone Class Library (DLL) responsible for all persistence operations in EasySave:
-
-| Responsibility | Class |
+| Member | Role |
 |---|---|
-| Write daily JSON log files with tamper-evident chaining | `Logger` |
-| Persist real-time backup job state to a JSON file | `StateManager` |
-| Verify log file integrity (anti-tampering) | `LogIntegrityVerifier` |
-| Cryptographic utilities (SHA-256, path normalisation) | `SecurityHelper` |
-
-EasyLog has **no dependency** on EasySave business logic. It can be reused in any .NET 8.0 project.
+| MESSADI Mahmoud | EasySave.ViewModels — Business logic |
+| RECHAM Wissam | EasySave.Console — UI & CLI |
+| LOUZAZNA Rayane | EasyLog.dll — Logging & state |
+| BOUYACOUB Rayan | EasySave.Console — UI & CLI |
 
 ---
 
-## Project Structure
+## Table of Contents
+
+1. [Project Overview](#1-project-overview)
+2. [Architecture](#2-architecture)
+3. [Project Structure](#3-project-structure)
+4. [Requirements & Installation](#4-requirements--installation)
+5. [How to Run](#5-how-to-run)
+6. [User Guide](#6-user-guide)
+7. [Generated Files](#7-generated-files)
+8. [Design Patterns](#8-design-patterns)
+9. [UML Diagrams](#9-uml-diagrams)
+10. [Technical Specifications](#10-technical-specifications)
+11. [Roadmap](#11-roadmap)
+
+---
+
+## 1. Project Overview
+
+EasySave is a backup management tool built for ProSoft's software suite. It allows users to define, manage and execute file backup jobs between source and target directories, with full real-time progress tracking and tamper-evident logging.
+
+### Key Features
+
+- **Up to 5 backup jobs** — each with a unique name, source directory, target directory and backup type
+- **Full backup** — copies every file and sub-directory from source to target
+- **Differential backup** — copies only files that have changed since the last backup
+- **Sequential execution** — run one job or all jobs one after another
+- **Command-line interface** — scriptable, no interaction needed
+- **Interactive menu** — user-friendly console UI
+- **Multi-language** — English and French, auto-detected from system culture
+- **Real-time state tracking** — `state.json` updated after every file operation
+- **Daily JSON log** — full audit trail via `EasyLog.dll` with SHA-256 tamper detection
+- **MVVM-ready architecture** — designed for easy migration to WPF GUI (v2.0)
+
+---
+
+## 2. Architecture
+
+EasySave follows a **MVVM-inspired layered architecture**. Each layer is a separate .NET project — not just a folder — ensuring strong separation of concerns and maximum scalability.
 
 ```
-EasyLog/
-├── Models/
-│   ├── LogEntry.cs           ← Data model for one log line
-│   └── BackupStateEntry.cs   ← Data model for one job's state
-└── Services/
-    ├── Logger.cs             ← PUBLIC  — daily log writer
-    ├── StateManager.cs       ← PUBLIC  — real-time state writer
-    ├── SecurityHelper.cs     ← PUBLIC  — SHA-256 & path helpers
-    └── LogIntegrityVerifier.cs ← INTERNAL — chain verifier
+┌────────────────────────────────────────────┐
+│           EasySave.Console                 │  ← Presentation (View)
+│  Program · ConsoleApp · ConsoleMenu        │
+│  ConsolePrompts · CommandLineParser        │
+│  AppBootstrapper · ConsoleAppContext       │
+└───────────────────┬────────────────────────┘
+                    │ uses
+┌───────────────────▼────────────────────────┐
+│          EasySave.ViewModels               │  ← Business Logic (ViewModel)
+│  BackupViewModel                           │
+│  BackupService · ConfigService             │
+│  LanguageService                           │
+└──────────┬─────────────────┬───────────────┘
+           │ uses            │ uses
+┌──────────▼──────┐  ┌───────▼───────────────┐
+│ EasySave.Models │  │      EasyLog (DLL)    │  ← Logging & State
+│  BackupJob      │  │  Logger · StateManager│
+│  BackupType     │  │  SecurityHelper       │
+└─────────────────┘  └───────────────────────┘
+```
+
+### Dependency Rules (one-way only)
+
+```
+Console  →  ViewModels  →  Models
+                       →  EasyLog
+```
+
+No layer ever references a layer above it. This guarantees that `EasySave.ViewModels` can be reused in the future WPF application without any modification.
+
+---
+
+## 3. Project Structure
+
+```
+EasySave-g2/
+│
+├── EasySave.sln                          ← Visual Studio solution
+├── README.md                             ← This file
+├── .gitignore
+│
+├── docs/
+│   ├── ReleaseNote.md                    ← Version history
+│   ├── UserManual.md                     ← One-page user manual
+│   └── UML/
+│       ├── README.md                     ← Diagram explanations
+│       └── Livrable 01 groupe 02.pdf     ← Full UML document
+│
+├── EasyLog/                              ← Class Library (DLL)
+│   ├── EasyLog.csproj
+│   ├── README.md                         ← DLL developer documentation
+│   ├── Models/
+│   │   ├── LogEntry.cs                   ← Log line data model
+│   │   └── BackupStateEntry.cs           ← Real-time state data model
+│   └── Services/
+│       ├── Logger.cs                     ← Daily JSON log writer
+│       ├── StateManager.cs               ← state.json writer
+│       ├── SecurityHelper.cs             ← SHA-256 chaining utilities
+│       └── LogIntegrityVerifier.cs       ← Tamper detection
+│
+├── EasySave.Models/                      ← Class Library
+│   ├── EasySave.Models.csproj
+│   ├── BackupJob.cs                      ← Backup job data model
+│   └── BackupType.cs                     ← Full / Differential enum
+│
+├── EasySave.ViewModels/                  ← Class Library
+│   ├── EasySave.ViewModels.csproj
+│   ├── BackupViewModel.cs                ← Central facade (ViewModel)
+│   └── Services/
+│       ├── BackupService.cs              ← File copy engine
+│       ├── ConfigService.cs              ← Job persistence (JSON)
+│       └── LanguageService.cs            ← FR/EN i18n
+│
+└── EasySave.Console/                     ← Console Application (.exe)
+    ├── EasySave.Console.csproj
+    ├── Program.cs                        ← Entry point
+    ├── Bootstrap/
+    │   ├── AppBootstrapper.cs            ← Dependency injection root
+    │   └── ConsoleAppContext.cs          ← Shared application context
+    ├── Cli/
+    │   ├── CommandLineParser.cs          ← Parses "1-3" and "1;3" args
+    │   └── CommandLineParseResult.cs
+    ├── ConsoleUi/
+    │   ├── ConsoleApp.cs                 ← Interactive loop & CLI dispatch
+    │   ├── ConsoleMenu.cs                ← Menu rendering (static)
+    │   └── ConsolePrompts.cs             ← User input helpers (static)
+    └── Resources/
+        ├── en.json                       ← English strings
+        └── fr.json                       ← French strings
 ```
 
 ---
 
-## Quick Start
+## 4. Requirements & Installation
 
-### 1. Reference the project
+### Prerequisites
 
-Add a `<ProjectReference>` to your `.csproj`:
+| Requirement | Version |
+|---|---|
+| Operating System | Windows 10 or later |
+| .NET Runtime | **8.0** |
+| Visual Studio | 2022 or later (for development) |
+| Disk space | ~50 MB |
+| RAM | 512 MB minimum |
 
-```xml
-<ProjectReference Include="..\EasyLog\EasyLog.csproj" />
+### Getting the source
+
+```bash
+git clone https://github.com/yanou16/EasySave-g2.git
+cd EasySave-g2
 ```
 
-### 2. Write a log entry
+### Build
 
-```csharp
-using EasyLog.Services;
-
-// Instantiate once — reuse across the application lifetime.
-var logger = new Logger(@"C:\Users\<user>\AppData\Local\ProSoft\EasySave\Logs");
-
-// Call after each file copy.
-logger.WriteLog(
-    backupName:     "My Backup",
-    sourcePath:     @"C:\Users\Me\Documents\report.docx",
-    targetPath:     @"D:\Backups\Documents\report.docx",
-    fileSize:       45056,
-    transferTimeMs: 234       // negative if the copy failed
-);
+```bash
+dotnet build EasySave.sln
 ```
 
-**Output** — `Logs\2026-04-23.json`:
+---
+
+## 5. How to Run
+
+### Visual Studio 2022
+
+1. Open `EasySave.sln`
+2. Right-click **EasySave.Console** → *Set as Startup Project*
+3. Press `F5` to run in debug mode
+
+**To test CLI arguments in Visual Studio:**
+- Right-click **EasySave.Console** → *Properties* → *Debug*
+- Set *Command line arguments* to e.g. `1-3`
+- Press `F5`
+
+### Command Line — Interactive Menu
+
+```bash
+dotnet run --project EasySave.Console/EasySave.Console.csproj
+```
+
+Or run the compiled executable directly:
+
+```bash
+cd EasySave.Console/bin/Debug/net8.0/
+EasySave.Console.exe
+```
+
+### Command Line — Direct Execution (CLI mode)
+
+Execute jobs without the interactive menu:
+
+```bash
+# Run job number 2
+EasySave.Console.exe 2
+
+# Run jobs 1, 2 and 3 (range)
+EasySave.Console.exe 1-3
+
+# Run jobs 1 and 3 (list)
+EasySave.Console.exe 1;3
+```
+
+This mode is fully scriptable and exits with code `0` on success, `1` on error.
+
+---
+
+## 6. User Guide
+
+### First Launch
+
+When you start the application in interactive mode, you are asked to select a language:
+
+```
+Language / Langue (en/fr): fr
+```
+
+Type `en` for English or `fr` for French, then press Enter.
+
+---
+
+### Main Menu
+
+```
+EasySave 1.0 Console
+========================================
+Data directory: C:\Users\...\ProSoft\EasySave
+
+Configured backup jobs
+[1] My Documents | Source: C:\Users\Me\Documents | Target: D:\Backup\Docs | Type: Full
+[2] Photos       | Source: C:\Users\Me\Pictures  | Target: D:\Backup\Photos | Type: Differential
+
+Main menu
+1. List backup jobs
+2. Add a backup job
+3. Remove a backup job
+4. Execute one backup job
+5. Execute all backup jobs
+6. Quit
+
+Choose an option:
+```
+
+---
+
+### Adding a Backup Job (option 2)
+
+```
+Backup name: My Documents
+Source directory: C:\Users\Me\Documents
+Target directory: D:\Backup\Docs
+Choose the backup type (1=Full, 2=Differential): 1
+
+Backup job added successfully.
+```
+
+**Rules:**
+- Maximum **5 jobs** can be configured
+- Job names must be **unique**
+- Source and target can be local drives, external drives, or network paths (UNC)
+- All files and sub-directories are included
+
+---
+
+### Backup Types
+
+| Type | Behaviour |
+|---|---|
+| **Full** | Copies **every** file from source to target, regardless of changes |
+| **Differential** | Copies only files that are **newer** in source than the existing copy in target |
+
+Use **Full** for the first backup of a location.  
+Use **Differential** for faster subsequent runs that only sync changes.
+
+---
+
+### Executing a Backup (option 4)
+
+```
+[1] My Documents
+[2] Photos
+
+Enter the backup number: 1
+
+Backup execution completed.
+```
+
+The application shows the job name and confirms completion. Progress is written in real time to `state.json`.
+
+---
+
+### Executing All Jobs (option 5)
+
+All configured jobs are run **sequentially**, one after another.  
+This is equivalent to running `EasySave.Console.exe 1-5` from the command line.
+
+---
+
+### Removing a Job (option 3)
+
+```
+[1] My Documents
+[2] Photos
+
+Enter the backup number: 2
+
+Backup job removed successfully.
+```
+
+The job is removed and IDs are renumbered automatically. The change is saved immediately.
+
+---
+
+### CLI Quick Reference
+
+| Command | Effect |
+|---|---|
+| `EasySave.Console.exe` | Start interactive menu |
+| `EasySave.Console.exe 1` | Run job 1 |
+| `EasySave.Console.exe 3` | Run job 3 |
+| `EasySave.Console.exe 1-3` | Run jobs 1, 2 and 3 |
+| `EasySave.Console.exe 2-5` | Run jobs 2, 3, 4 and 5 |
+| `EasySave.Console.exe 1;3` | Run jobs 1 and 3 |
+| `EasySave.Console.exe 2;4` | Run jobs 2 and 4 |
+
+Exit codes: `0` = success · `1` = invalid arguments or execution error
+
+---
+
+## 7. Generated Files
+
+All files are stored under:  
+**`%LocalAppData%\ProSoft\EasySave\`**  
+(i.e. `C:\Users\<you>\AppData\Local\ProSoft\EasySave\`)
+
+> Paths such as `C:\temp\` are never used — ensuring compatibility with restricted server environments.
+
+### `jobs.json` — Configured jobs
 
 ```json
 [
   {
-    "Timestamp": "2026-04-23 14:32:10",
-    "BackupName": "My Backup",
+    "Id": 1,
+    "Name": "My Documents",
+    "SourceDirectory": "C:\\Users\\Me\\Documents",
+    "TargetDirectory": "D:\\Backup\\Docs",
+    "Type": "Full"
+  }
+]
+```
+
+### `state.json` — Real-time progress (all jobs)
+
+Updated after **every single file** operation so external monitoring tools can read it at any time.
+
+```json
+[
+  {
+    "BackupName": "My Documents",
+    "LastActionTimestamp": "2026-04-24 10:15:32",
+    "State": "Active",
+    "TotalFiles": 245,
+    "TotalSize": 536870912,
+    "Progress": 42.8,
+    "RemainingFiles": 140,
+    "RemainingSize": 307300000,
+    "CurrentSourceFile": "C:\\Users\\Me\\Documents\\report.docx",
+    "CurrentTargetFile": "D:\\Backup\\Docs\\report.docx",
+    "Error": ""
+  }
+]
+```
+
+### `Logs\YYYY-MM-DD.json` — Daily audit log
+
+One file per day. Each entry is **cryptographically chained** with SHA-256 — modifying any entry breaks the chain, making tampering detectable.
+
+```json
+[
+  {
+    "Timestamp": "2026-04-24 10:15:30",
+    "BackupName": "My Documents",
     "SourcePath": "C:\\Users\\Me\\Documents\\report.docx",
-    "TargetPath": "D:\\Backups\\Documents\\report.docx",
+    "TargetPath": "D:\\Backup\\Docs\\report.docx",
     "FileSize": 45056,
-    "TransferTimeMs": 234,
+    "TransferTimeMs": 18,
     "PreviousHash": "GENESIS",
     "Hash": "eW91ciBiYXNlNjQgaGFzaA=="
   }
 ]
 ```
 
-### 3. Write real-time state
-
-```csharp
-using EasyLog.Models;
-using EasyLog.Services;
-
-var stateManager = new StateManager(
-    @"C:\Users\<user>\AppData\Local\ProSoft\EasySave\state.json");
-
-// Call before and after each file copy during a backup job.
-stateManager.WriteState(new BackupStateEntry
-{
-    BackupName          = "My Backup",
-    LastActionTimestamp = "2026-04-23 14:32:10",
-    State               = "Active",
-    TotalFiles          = 100,
-    TotalSize           = 52428800,
-    Progress            = 45.0,
-    RemainingFiles      = 55,
-    RemainingSize       = 28835840,
-    CurrentSourceFile   = @"C:\Users\Me\Documents\report.docx",
-    CurrentTargetFile   = @"D:\Backups\Documents\report.docx",
-    Error               = ""
-});
-```
+`TransferTimeMs` is **negative** if the file copy failed (absolute value = elapsed time before failure).
 
 ---
 
-## API Reference
+## 8. Design Patterns
 
-### `Logger`
-
-```csharp
-public class Logger
-{
-    // Constructor — creates the log directory if it does not exist.
-    public Logger(string logDirectory)
-
-    // Appends one entry to today's log file (yyyy-MM-dd.json).
-    // transferTimeMs < 0 → transfer failed.
-    public void WriteLog(string backupName, string sourcePath,
-                         string targetPath, long fileSize, long transferTimeMs)
-}
-```
-
-### `StateManager`
-
-```csharp
-public class StateManager
-{
-    // Constructor — creates the parent directory if it does not exist.
-    public StateManager(string stateFilePath)
-
-    // Overwrites the state file with the current snapshot.
-    // Errors are swallowed — a write failure never aborts a backup.
-    public void WriteState(BackupStateEntry state)
-}
-```
-
-### `SecurityHelper` *(static)*
-
-```csharp
-public static class SecurityHelper
-{
-    // Returns the Base64-encoded SHA-256 hash of a UTF-8 string.
-    public static string ComputeHash(string data)
-
-    // Returns Path.GetFullPath(path) — ensures UNC-style consistency.
-    public static string NormalizePath(string path)
-
-    // Builds the chained signature for one log entry.
-    public static string BuildLogSignature(string timestamp, string backupName,
-        string sourcePath, string targetPath,
-        long fileSize, long transferTimeMs, string previousHash)
-}
-```
-
-### `LogEntry` model
-
-| Property | Type | Description |
+| Pattern | Where | Why |
 |---|---|---|
-| `Timestamp` | `string` | UTC datetime — `"yyyy-MM-dd HH:mm:ss"` |
-| `BackupName` | `string` | Name of the backup job |
-| `SourcePath` | `string` | Absolute UNC source path |
-| `TargetPath` | `string` | Absolute UNC destination path |
-| `FileSize` | `long` | File size in bytes |
-| `TransferTimeMs` | `long` | Duration in ms (negative = error) |
-| `PreviousHash` | `string` | Hash of the preceding entry (`"GENESIS"` for first) |
-| `Hash` | `string` | SHA-256 signature of this entry |
-
-### `BackupStateEntry` model
-
-| Property | Type | Description |
-|---|---|---|
-| `BackupName` | `string` | Job name |
-| `LastActionTimestamp` | `string` | Datetime of the last update |
-| `State` | `string` | `"Active"` or `"Inactive"` |
-| `TotalFiles` | `int` | Total eligible file count |
-| `TotalSize` | `long` | Total eligible size in bytes |
-| `Progress` | `double` | Completion percentage (0–100) |
-| `RemainingFiles` | `int` | Files not yet transferred |
-| `RemainingSize` | `long` | Bytes not yet transferred |
-| `CurrentSourceFile` | `string` | File currently being read |
-| `CurrentTargetFile` | `string` | File currently being written |
-| `Error` | `string` | Last error message (empty = no error) |
+| **MVVM** | All 4 projects | Decouples the console UI from business logic. Replacing the console with a WPF window requires no changes to `EasySave.ViewModels` |
+| **Dependency Injection** | `AppBootstrapper` | All services are constructed once and injected via constructors — no `new` inside business classes |
+| **Repository** | `ConfigService` | Abstracts job persistence behind `LoadJobs()` / `SaveJobs()` — the storage format (JSON today, database tomorrow) is hidden from callers |
+| **Facade** | `BackupViewModel` | Single entry point for the view layer — hides the complexity of `BackupService`, `ConfigService` and `LanguageService` behind a simple API |
+| **Chain of Responsibility** | `Logger` + `SecurityHelper` + `LogIntegrityVerifier` | Log entries are SHA-256 chained like a blockchain — each entry's hash depends on the previous one, making any tampering detectable |
 
 ---
 
-## Security — Chained Hashing
+## 9. UML Diagrams
 
-Each `LogEntry` contains two fields that form a tamper-evident chain:
+Full UML document with explanations: [`docs/UML/Livrable 01 groupe 02.pdf`](docs/UML/Livrable%2001%20groupe%2002.pdf)
 
-```
-Entry 1 → Hash = SHA256("...fields...|GENESIS")
-Entry 2 → Hash = SHA256("...fields...|Entry1.Hash")
-Entry 3 → Hash = SHA256("...fields...|Entry2.Hash")
-```
+### Use Case Diagram
 
-Modifying any field in any entry breaks the chain.  
-Use `LogIntegrityVerifier.VerifyLogChain(filePath)` to validate a log file programmatically.
+Covers the two execution modes (interactive menu and CLI) and all user actions: launch, add/remove/execute jobs, change language, quit.
+
+### Class Diagram
+
+Shows all 4 projects as packages with their classes, attributes, methods and relationships. `BackupViewModel` is the central hub, wired to `BackupService`, `ConfigService` and `LanguageService`. `EasyLog` is fully independent.
+
+### Sequence Diagram
+
+Details the full lifecycle: startup → language loading → service initialisation → job loading → execution (with `alt` block for CLI vs interactive) → file loop (copy + log + state update) → final state update → user notification.
+
+### Activity Diagram
+
+Shows the decision flow from launch: CLI arguments present? → parse & execute directly. No arguments? → load language → load config → display menu → user choice → backup execution loop → end.
 
 ---
 
-## File Location Guidelines
+## 10. Technical Specifications
 
-| File | Recommended path |
+| Item | Detail |
 |---|---|
-| Daily log | `%LocalAppData%\ProSoft\EasySave\Logs\yyyy-MM-dd.json` |
-| State file | `%LocalAppData%\ProSoft\EasySave\state.json` |
-
-> **Never** use paths such as `C:\temp\` — they may not exist on client servers  
-> and may not be writable under restricted user accounts.
+| Language | C# |
+| Framework | .NET 8.0 |
+| IDE | Visual Studio 2022 |
+| Architecture | MVVM-inspired layered (4 projects) |
+| Config format | JSON with indentation (`WriteIndented = true`) |
+| Log format | JSON, one file per day, SHA-256 chained |
+| Config location | `%LocalAppData%\ProSoft\EasySave\jobs.json` |
+| Log location | `%LocalAppData%\ProSoft\EasySave\Logs\YYYY-MM-DD.json` |
+| State location | `%LocalAppData%\ProSoft\EasySave\state.json` |
+| Max backup jobs | 5 (v1.0) — unlimited from v2.0 |
+| Backup execution | Sequential |
+| Supported paths | Local drives · External drives · Network paths (UNC) |
+| Languages | English · French |
+| External dependencies | None (only .NET 8.0 BCL) |
 
 ---
 
-## Versioning & Compatibility
+## 11. Roadmap
 
-| EasySave version | EasyLog version | Compatible |
+| Version | Status | Changes |
 |---|---|---|
-| 1.0 | 1.0.0 | ✅ |
-| 1.1 (planned) | 1.x | ✅ (backward compatible) |
-| 2.0 (planned) | 1.x | ✅ (backward compatible) |
+| **1.0** | ✅ Released | Console app, 5 jobs, full/differential, logs, state, FR/EN |
+| **1.1** | 🔜 Planned | XML log format option (alongside JSON) |
+| **2.0** | 🔜 Planned | WPF GUI, unlimited jobs, CryptoSoft encryption, business software detection |
+| **3.0** | 🔜 Planned | Play/Pause/Stop per job, advanced scheduling |
 
-All future evolutions of EasyLog **must** preserve the existing public API  
-(`Logger.WriteLog`, `StateManager.WriteState`, model property names)  
-so that v1.0 integrations continue to work without recompilation.
+> The `EasySave.ViewModels` layer is already decoupled from the console and will be reused without modification in v2.0.
 
 ---
 
-## Dependencies
+## Support Information
 
-EasyLog has **zero external NuGet dependencies**.  
-It uses only .NET 8.0 BCL (`System.Text.Json`, `System.Security.Cryptography`).
+| Item | Value |
+|---|---|
+| Default install path | Folder containing `EasySave.Console.exe` |
+| Config & logs | `%LocalAppData%\ProSoft\EasySave\` |
+| Min. OS | Windows 10 |
+| Min. RAM | 512 MB |
+| Min. disk | 50 MB |
+| Support hours | 5/7 — 8h to 17h |
+| Maintenance contract | 12% of purchase price per year (SYNTEC index) |
