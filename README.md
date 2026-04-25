@@ -7,10 +7,10 @@
 
 | Member | Role |
 |---|---|
-| MESSADI Mahmoud | EasySave.ViewModels — Business logic |
-| RECHAM Wissam | EasySave.Console — UI & CLI |
-| LOUZAZNA Rayane | EasyLog.dll — Logging & state |
-| BOUYACOUB Rayan | EasySave.Console — UI & CLI |
+| MESSADI Mahmoud | EasySave.Console — UI & CLI |
+| RECHAM Wissam | EasySave.ViewModels — Business logic |
+| LOUZAZNA Rayane | EasySave.ViewModels — Business logic |
+| BOUYACOUB Rayan | EasyLog.dll — Logging & state |
 
 ---
 
