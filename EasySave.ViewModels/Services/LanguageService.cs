@@ -16,7 +16,11 @@ namespace EasySave.ViewModels.Services
             _strings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path))
                        ?? new Dictionary<string, string>();
         }
-
+        public void LoadFromJson(string json)
+        {
+            _strings = JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+                       ?? new Dictionary<string, string>();
+        }
         public string Get(string key) =>
             _strings.TryGetValue(key, out string? value) ? value : key;
     }

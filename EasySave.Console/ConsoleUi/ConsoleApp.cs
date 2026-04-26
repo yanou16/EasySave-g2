@@ -180,12 +180,26 @@ namespace EasySave.Console.ConsoleUi
 
         private void LoadLanguage(bool interactive)
         {
-            // Interactive mode asks explicitly; CLI mode defaults from the current UI culture.
             string language = interactive
                 ? ConsolePrompts.PromptLanguage()
                 : GetDefaultLanguage();
 
-            _context.LanguageService.Load(_context.ResourcesDirectory, language);
+            string filePath = Path.Combine(_context.ResourcesDirectory, $"{language}.json");
+            if (File.Exists(filePath))
+            {
+                _context.LanguageService.Load(_context.ResourcesDirectory, language);
+                return;
+            }
+
+            // Fall back to embedded resources (single-file publish scenario).
+            var assembly = typeof(ConsoleApp).Assembly;
+            string resourceName = $"EasySave.Console.Resources.{language}.json";
+            using var stream = assembly.GetManifestResourceStream(resourceName)
+                              ?? assembly.GetManifestResourceStream("EasySave.Console.Resources.en.json");
+            if (stream is null)
+                return;
+            using var reader = new System.IO.StreamReader(stream);
+            _context.LanguageService.LoadFromJson(reader.ReadToEnd());
         }
 
         private static string GetDefaultLanguage()
