@@ -1,5 +1,7 @@
+using EasyLog;
 using EasyLog.Models;
 using EasyLog.Services;
+using EasySave.Models;
 using EasySave.ViewModels;
 using EasySave.ViewModels.Services;
 
@@ -9,7 +11,6 @@ namespace EasySave.Console.Bootstrap
     {
         public ConsoleAppContext Create()
         {
-            // Store config, state, and logs under a stable per-user app data root.
             string appDataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "ProSoft",
@@ -19,16 +20,19 @@ namespace EasySave.Console.Bootstrap
             string stateFilePath = Path.Combine(appDataDirectory, "state.json");
             string resourcesDirectory = Path.Combine(AppContext.BaseDirectory, "Resources");
 
-            // Shared list of all job states — written as one file on every update (spec: "fichier unique").
             var allStates = new List<BackupStateEntry>();
 
-            var logger = new Logger(logsDirectory);
+            // Load settings first to get the log format
+            var settingsService = new SettingsService();
+            var settings = settingsService.Load();
+            var logFormat = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
+
+            var logger = new Logger(logsDirectory, logFormat);
             var configService = new ConfigService(appDataDirectory);
             var languageService = new LanguageService();
             var backupService = new BackupService(logger, stateFilePath, allStates);
-            var backupViewModel = new BackupViewModel(configService, backupService, languageService);
+            var backupViewModel = new BackupViewModel(configService, backupService, languageService, settingsService);
 
-            // Pre-populate state list with all already-configured jobs (shown as Inactive on startup).
             foreach (var job in backupViewModel.Jobs)
                 allStates.Add(new BackupStateEntry { BackupName = job.Name, State = "Inactive" });
 

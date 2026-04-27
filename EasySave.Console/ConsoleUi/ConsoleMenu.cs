@@ -21,7 +21,8 @@ namespace EasySave.Console.ConsoleUi
             System.Console.WriteLine($"3. {language.Get("MenuRemoveJob")}");
             System.Console.WriteLine($"4. {language.Get("MenuExecuteJob")}");
             System.Console.WriteLine($"5. {language.Get("MenuExecuteAllJobs")}");
-            System.Console.WriteLine($"6. {language.Get("MenuQuit")}");
+            System.Console.WriteLine($"6. {language.Get("MenuSettings")}");
+            System.Console.WriteLine($"7. {language.Get("MenuQuit")}");
             System.Console.WriteLine();
         }
 

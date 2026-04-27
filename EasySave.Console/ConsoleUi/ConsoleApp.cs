@@ -102,8 +102,11 @@ namespace EasySave.Console.ConsoleUi
                         ExecuteAllJobs();
                         break;
                     case 6:
+                        ChangeLogFormat();
+                        break;
+                    case 7:
                         running = false;
-                        continue;
+                        break;
                     default:
                         System.Console.WriteLine(_context.LanguageService.Get("InvalidMenuChoice"));
                         break;
@@ -206,6 +209,20 @@ namespace EasySave.Console.ConsoleUi
         {
             string culture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             return culture == "fr" ? "fr" : "en";
+        }
+
+        private void ChangeLogFormat()
+        {
+            System.Console.WriteLine(_context.LanguageService.Get("CurrentLogFormat") +
+                ": " + _context.LanguageService.Get("LogFormatPrompt"));
+            System.Console.WriteLine("1. JSON");
+            System.Console.WriteLine("2. XML");
+
+            string input = ConsolePrompts.Prompt(_context.LanguageService, "PromptChoice");
+            string format = input.Trim() == "2" ? "XML" : "JSON";
+
+            var result = _context.BackupViewModel.ChangeLogFormat(format);
+            System.Console.WriteLine(result.Message);
         }
     }
 }

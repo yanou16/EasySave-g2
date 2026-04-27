@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using EasyLog;
 using EasyLog.Models;
 using EasyLog.Services;
 using EasySave.Models;
@@ -13,7 +14,7 @@ namespace EasySave.ViewModels.Services
     /// </summary>
     public class BackupService
     {
-        private readonly Logger _logger;
+        private Logger _logger;
         private readonly string _stateFilePath;
         private readonly List<BackupStateEntry> _allStates;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
@@ -110,6 +111,15 @@ namespace EasySave.ViewModels.Services
             state.CurrentTargetFile = string.Empty;
             state.LastActionTimestamp = Timestamp();
             WriteAllStates();
+        }
+
+        /// <summary>
+        /// Updates the logger format at runtime (called when user changes log format in settings).
+        /// </summary>
+        public void UpdateLogFormat(LogFormat format)
+        {
+            string dir = Path.Combine(Path.GetDirectoryName(_stateFilePath)!, "Logs");
+            _logger = new Logger(dir, format);
         }
 
         // Writes ALL jobs states into one single state.json (spec: "fichier unique")

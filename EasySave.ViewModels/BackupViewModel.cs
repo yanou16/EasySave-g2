@@ -1,4 +1,5 @@
-using EasyLog.Models;
+using EasyLog.Services;
+using EasyLog;
 using EasySave.Models;
 using EasySave.ViewModels.Services;
 
@@ -13,17 +14,52 @@ namespace EasySave.ViewModels
         private readonly ConfigService _configService;
         private readonly BackupService _backupService;
         private readonly LanguageService _language;
+        private readonly SettingsService _settingsService;
         private List<BackupJob> _jobs;
 
         /// <summary>Jobs exposed to the View (read-only).</summary>
         public IReadOnlyList<BackupJob> Jobs => _jobs.AsReadOnly();
 
-        public BackupViewModel(ConfigService configService, BackupService backupService, LanguageService language)
+        public BackupViewModel(
+            ConfigService configService,
+            BackupService backupService,
+            LanguageService language,
+            SettingsService settingsService)
         {
             _configService = configService;
             _backupService = backupService;
             _language = language;
+            _settingsService = settingsService;
             _jobs = configService.LoadJobs();
+
+            // Apply saved log format to the backup service
+            ApplyLogFormat();
+        }
+
+        /// <summary>
+        /// Reads the saved log format setting and updates the BackupService logger accordingly.
+        /// </summary>
+        public void ApplyLogFormat()
+        {
+            AppSettings settings = _settingsService.Load();
+            LogFormat format = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
+            _backupService.UpdateLogFormat(format);
+        }
+
+        /// <summary>
+        /// Updates the log format setting and applies it immediately.
+        /// </summary>
+        public (bool Success, string Message) ChangeLogFormat(string format)
+        {
+            if (format != "JSON" && format != "XML")
+                return (false, _language.Get("InvalidLogFormat"));
+
+            AppSettings settings = _settingsService.Load();
+            settings.LogFormat = format;
+            _settingsService.Save(settings);
+
+            ApplyLogFormat();
+            return (true, _language.Get("SettingsSaved"));
         }
 
         /// <summary>Adds a new backup job. Returns success flag + localized message.</summary>

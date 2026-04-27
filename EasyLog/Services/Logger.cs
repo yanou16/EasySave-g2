@@ -1,46 +1,39 @@
 using System.Text.Json;
+using System.Xml.Linq;
 using EasyLog.Models;
 
 namespace EasyLog.Services
 {
     /// <summary>
-    /// Writes file transfer events to a daily JSON log file with chained SHA-256 integrity hashing.
+    /// Writes file transfer events to a daily log file (JSON or XML) with chained SHA-256 integrity hashing.
     /// One log file is created per calendar day under the configured directory.
-    /// This class is the primary public API of the EasyLog library.
     /// Compatible with all EasySave versions (v1.0 and above).
     /// </summary>
     public class Logger
     {
         private readonly string _logDirectory;
+        private readonly LogFormat _format;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
         /// <summary>
-        /// Initialises the logger and ensures the log directory exists.
+        /// v1.0-compatible constructor — defaults to JSON.
         /// </summary>
-        /// <param name="logDirectory">
-        /// Absolute path of the directory where daily log files are stored.
-        /// Recommended: a sub-folder of the application's LocalApplicationData root.
-        /// Paths such as "C:\temp" must not be used in production deployments.
-        /// </param>
-        public Logger(string logDirectory)
+        public Logger(string logDirectory) : this(logDirectory, LogFormat.Json) { }
+
+        /// <summary>
+        /// v1.1+ constructor — caller chooses JSON or XML.
+        /// </summary>
+        public Logger(string logDirectory, LogFormat format)
         {
             _logDirectory = logDirectory;
+            _format = format;
             Directory.CreateDirectory(_logDirectory);
         }
 
         /// <summary>
-        /// Appends a file transfer event to today's JSON log file.
-        /// The entry is chained to the previous one using SHA-256 so the log
-        /// can be verified for tampering by <see cref="LogIntegrityVerifier"/>.
+        /// Appends a file transfer event to today's log file.
+        /// Format (JSON or XML) is determined by the constructor parameter.
         /// </summary>
-        /// <param name="backupName">Name of the backup job that triggered the transfer.</param>
-        /// <param name="sourcePath">Absolute source path (normalised to UNC format).</param>
-        /// <param name="targetPath">Absolute destination path (normalised to UNC format).</param>
-        /// <param name="fileSize">File size in bytes.</param>
-        /// <param name="transferTimeMs">
-        /// Transfer duration in milliseconds.
-        /// Pass a negative value when the transfer failed (absolute value = time before failure).
-        /// </param>
         public void WriteLog(
             string backupName,
             string sourcePath,
@@ -51,22 +44,41 @@ namespace EasyLog.Services
             sourcePath = SecurityHelper.NormalizePath(sourcePath);
             targetPath = SecurityHelper.NormalizePath(targetPath);
 
-            string logFilePath = Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.json");
+            string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
+            if (_format == LogFormat.Xml)
+            {
+                WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, timestamp);
+            }
+            else
+            {
+                WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, timestamp);
+            }
+        }
+
+        // ── JSON (original logic, unchanged) ────────────────────────────────
+        private void WriteJson(
+            string backupName,
+            string sourcePath,
+            string targetPath,
+            long fileSize,
+            long transferTimeMs,
+            string timestamp)
+        {
+            string logFilePath = Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.json");
             List<LogEntry> logs = LoadExistingLogs(logFilePath);
 
             string previousHash = logs.Count > 0 ? logs[^1].Hash : "GENESIS";
-            string timestamp    = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
             var entry = new LogEntry
             {
-                Timestamp     = timestamp,
-                BackupName    = backupName,
-                SourcePath    = sourcePath,
-                TargetPath    = targetPath,
-                FileSize      = fileSize,
+                Timestamp = timestamp,
+                BackupName = backupName,
+                SourcePath = sourcePath,
+                TargetPath = targetPath,
+                FileSize = fileSize,
                 TransferTimeMs = transferTimeMs,
-                PreviousHash  = previousHash
+                PreviousHash = previousHash
             };
 
             entry.Hash = SecurityHelper.BuildLogSignature(
@@ -82,12 +94,61 @@ namespace EasyLog.Services
             File.WriteAllText(logFilePath, JsonSerializer.Serialize(logs, JsonOptions));
         }
 
-        /// <summary>Reads the existing log entries for today, or returns an empty list on failure.</summary>
+        // ── XML (new for v1.1) ───────────────────────────────────────────────
+        private void WriteXml(
+            string backupName,
+            string sourcePath,
+            string targetPath,
+            long fileSize,
+            long transferTimeMs,
+            string timestamp)
+        {
+            string logFilePath = Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.xml");
+
+            XDocument doc;
+            string previousHash;
+
+            if (File.Exists(logFilePath))
+            {
+                doc = XDocument.Load(logFilePath);
+                previousHash = doc.Root?
+                    .Elements("LogEntry")
+                    .LastOrDefault()
+                    ?.Element("Hash")?.Value ?? "GENESIS";
+            }
+            else
+            {
+                doc = new XDocument(new XElement("Logs"));
+                previousHash = "GENESIS";
+            }
+
+            string hash = SecurityHelper.BuildLogSignature(
+                timestamp,
+                backupName,
+                sourcePath,
+                targetPath,
+                fileSize,
+                transferTimeMs,
+                previousHash);
+
+            doc.Root!.Add(new XElement("LogEntry",
+                new XElement("Timestamp", timestamp),
+                new XElement("BackupName", backupName),
+                new XElement("SourcePath", sourcePath),
+                new XElement("TargetPath", targetPath),
+                new XElement("FileSize", fileSize),
+                new XElement("TransferTimeMs", transferTimeMs),
+                new XElement("PreviousHash", previousHash),
+                new XElement("Hash", hash)
+            ));
+
+            doc.Save(logFilePath);
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────
         private static List<LogEntry> LoadExistingLogs(string logFilePath)
         {
-            if (!File.Exists(logFilePath))
-                return new List<LogEntry>();
-
+            if (!File.Exists(logFilePath)) return new List<LogEntry>();
             try
             {
                 string json = File.ReadAllText(logFilePath);
@@ -95,10 +156,7 @@ namespace EasyLog.Services
                     ? new List<LogEntry>()
                     : JsonSerializer.Deserialize<List<LogEntry>>(json) ?? new List<LogEntry>();
             }
-            catch
-            {
-                return new List<LogEntry>();
-            }
+            catch { return new List<LogEntry>(); }
         }
     }
 }
