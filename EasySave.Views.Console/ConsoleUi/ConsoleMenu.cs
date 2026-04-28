@@ -1,12 +1,12 @@
+using EasySave.Models;
 using EasySave.ViewModels.Services;
 
-namespace EasySave.Console.ConsoleUi
+namespace EasySave.Views.Console.ConsoleUi
 {
     public static class ConsoleMenu
     {
         public static void PrintHeader(LanguageService language, string appDataDirectory)
         {
-            // Show the active storage root so support paths are visible from the app itself.
             System.Console.WriteLine(language.Get("AppTitle"));
             System.Console.WriteLine(new string('=', 40));
             System.Console.WriteLine($"{language.Get("StorageLocation")}: {appDataDirectory}");
@@ -26,11 +26,8 @@ namespace EasySave.Console.ConsoleUi
             System.Console.WriteLine();
         }
 
-        public static void PrintJobs(
-            LanguageService language,
-            IReadOnlyList<EasySave.Models.BackupJob> jobs)
+        public static void PrintJobs(LanguageService language, IReadOnlyList<BackupJob> jobs)
         {
-            // Reuse the same list rendering in both the home screen and explicit "list jobs" action.
             if (jobs.Count == 0)
             {
                 System.Console.WriteLine(language.Get("NoJobs"));
@@ -42,8 +39,10 @@ namespace EasySave.Console.ConsoleUi
             foreach (var job in jobs)
             {
                 System.Console.WriteLine(
-                    $"[{job.Id}] {job.Name} | {language.Get("LabelSource")}: {job.SourceDirectory} | " +
-                    $"{language.Get("LabelTarget")}: {job.TargetDirectory} | {language.Get("LabelType")}: {job.Type}");
+                    $"[{job.Id}] {job.Name} | " +
+                    $"{language.Get("LabelSource")}: {job.SourceDirectory} | " +
+                    $"{language.Get("LabelTarget")}: {job.TargetDirectory} | " +
+                    $"{language.Get("LabelType")}: {job.Type}");
             }
 
             System.Console.WriteLine();

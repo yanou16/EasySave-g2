@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>EasySave.GUI</AssemblyName>
+    <RootNamespace>EasySave.Views.WPF</RootNamespace>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <!-- Views reference only ViewModels and Models (pure DTOs). Never EasyLog directly. -->
+  <ItemGroup>
+    <ProjectReference Include="..\EasySave.ViewModels\EasySave.ViewModels.csproj" />
+    <ProjectReference Include="..\EasySave.Models\EasySave.Models.csproj" />
+  </ItemGroup>
+</Project>

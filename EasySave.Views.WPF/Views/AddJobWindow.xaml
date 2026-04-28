@@ -1,0 +1,59 @@
+<Window x:Class="EasySave.Views.WPF.AddJobWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add Backup Job" Height="280" Width="440"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Name -->
+        <Label  Grid.Row="0" Grid.Column="0" Content="Name:"    VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                 x:Name="TxtName" Margin="0,4"/>
+
+        <!-- Source -->
+        <Label  Grid.Row="1" Grid.Column="0" Content="Source:"  VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtSource" Margin="0,4"/>
+        <Button  Grid.Row="1" Grid.Column="2" Content="..."      Width="28" Margin="4,4,0,4"
+                 Click="BtnBrowseSource_Click"/>
+
+        <!-- Target -->
+        <Label  Grid.Row="2" Grid.Column="0" Content="Target:"  VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtTarget" Margin="0,4"/>
+        <Button  Grid.Row="2" Grid.Column="2" Content="..."      Width="28" Margin="4,4,0,4"
+                 Click="BtnBrowseTarget_Click"/>
+
+        <!-- Type -->
+        <Label   Grid.Row="3" Grid.Column="0" Content="Type:"   VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                  x:Name="CmbType" Margin="0,4"
+                  SelectedIndex="0">
+            <ComboBoxItem Content="Full"/>
+            <ComboBoxItem Content="Differential"/>
+        </ComboBox>
+
+        <!-- Error -->
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                   x:Name="TxtError" Foreground="Red" Margin="0,4" TextWrapping="Wrap"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
+                    Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="Add"    Width="80" Margin="0,0,8,0" Click="BtnAdd_Click"/>
+            <Button Content="Cancel" Width="80" Click="BtnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

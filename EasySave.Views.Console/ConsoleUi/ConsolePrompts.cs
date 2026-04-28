@@ -1,13 +1,12 @@
 using EasySave.Models;
 using EasySave.ViewModels.Services;
 
-namespace EasySave.Console.ConsoleUi
+namespace EasySave.Views.Console.ConsoleUi
 {
     public static class ConsolePrompts
     {
         public static string Prompt(LanguageService language, string key)
         {
-            // Keep prompt formatting centralized so menu actions stay focused on flow.
             System.Console.Write($"{language.Get(key)} ");
             return System.Console.ReadLine()?.Trim() ?? string.Empty;
         }
@@ -18,9 +17,7 @@ namespace EasySave.Console.ConsoleUi
             {
                 string input = Prompt(language, "PromptMenuChoice");
                 if (int.TryParse(input, out int choice))
-                {
                     return choice;
-                }
 
                 System.Console.WriteLine(language.Get("InvalidNumber"));
             }
@@ -32,9 +29,7 @@ namespace EasySave.Console.ConsoleUi
             {
                 string input = Prompt(language, "PromptJobNumber");
                 if (int.TryParse(input, out int selected) && selected >= 1 && selected <= jobCount)
-                {
                     return selected - 1;
-                }
 
                 System.Console.WriteLine(language.Get("InvalidJobSelection"));
             }
@@ -44,17 +39,10 @@ namespace EasySave.Console.ConsoleUi
         {
             while (true)
             {
-                // Accept both numeric and text input to keep the console UX forgiving.
                 string input = Prompt(language, "PromptBackupType").ToLowerInvariant();
-                if (input is "1" or "full")
-                {
-                    return BackupType.Full;
-                }
 
-                if (input is "2" or "differential")
-                {
-                    return BackupType.Differential;
-                }
+                if (input is "1" or "full")        return BackupType.Full;
+                if (input is "2" or "differential") return BackupType.Differential;
 
                 System.Console.WriteLine(language.Get("InvalidBackupType"));
             }
