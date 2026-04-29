@@ -40,6 +40,8 @@
   "InvalidJobIndex": "Numéro de travail invalide.",
   "JobRemoved": "Travail de sauvegarde supprimé avec succès.",
   "CurrentLogFormat": "Format de log actuel",
-  "LogFormatPrompt": "Choisissez un format",
-  "SettingsSaved": "Paramètres sauvegardés. Relancez l'application pour appliquer."
+  "LogFormatPrompt": "Choisissez un format (JSON/XML) :",
+  "CurrentCryptoExtensions": "Extensions CryptoSoft actuelles",
+  "CryptoExtensionsPrompt": "Extensions à chiffrer avec CryptoSoft (.txt;.docx, vide pour désactiver) :",
+  "SettingsSaved": "Paramètres sauvegardés."
 }

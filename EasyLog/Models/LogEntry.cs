@@ -29,6 +29,12 @@ namespace EasyLog.Models
         public long TransferTimeMs { get; set; }
 
         /// <summary>
+        /// Encryption duration in milliseconds.
+        /// 0 means no encryption, positive values mean success, negative values mean CryptoSoft error code.
+        /// </summary>
+        public long EncryptionTimeMs { get; set; }
+
+        /// <summary>
         /// SHA-256 hash of the previous log entry.
         /// Set to "GENESIS" for the very first entry in a log file.
         /// </summary>

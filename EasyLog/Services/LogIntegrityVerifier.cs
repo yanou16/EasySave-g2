@@ -43,10 +43,23 @@ namespace EasyLog.Services
                         log.TargetPath,
                         log.FileSize,
                         log.TransferTimeMs,
+                        log.EncryptionTimeMs,
                         log.PreviousHash);
 
                     if (log.Hash != recalculated)
-                        return false;
+                    {
+                        string legacyRecalculated = SecurityHelper.BuildLogSignature(
+                            log.Timestamp,
+                            log.BackupName,
+                            log.SourcePath,
+                            log.TargetPath,
+                            log.FileSize,
+                            log.TransferTimeMs,
+                            log.PreviousHash);
+
+                        if (log.Hash != legacyRecalculated)
+                            return false;
+                    }
 
                     expectedPreviousHash = log.Hash;
                 }

@@ -93,7 +93,7 @@ namespace EasySave.Views.Console.ConsoleUi
                     case 3: RemoveJob();       break;
                     case 4: ExecuteJob();      break;
                     case 5: ExecuteAllJobs();  break;
-                    case 6: ChangeLogFormat(); break;
+                    case 6: ChangeSettings();  break;
                     case 7: running = false;   continue;
                     default:
                         System.Console.WriteLine(_context.LanguageService.Get("InvalidMenuChoice"));
@@ -169,12 +169,18 @@ namespace EasySave.Views.Console.ConsoleUi
             }
         }
 
-        private void ChangeLogFormat()
+        private void ChangeSettings()
         {
-            System.Console.WriteLine($"{_context.LanguageService.Get("CurrentLogFormat")}: JSON / XML");
+            var settings = _context.BackupViewModel.GetSettings();
+            System.Console.WriteLine($"{_context.LanguageService.Get("CurrentLogFormat")}: {settings.LogFormat}");
             string format = ConsolePrompts.Prompt(_context.LanguageService, "LogFormatPrompt").ToUpperInvariant();
-            var result = _context.BackupViewModel.ChangeLogFormat(format);
-            System.Console.WriteLine(result.Message);
+            var formatResult = _context.BackupViewModel.ChangeLogFormat(format);
+            System.Console.WriteLine(formatResult.Message);
+
+            System.Console.WriteLine($"{_context.LanguageService.Get("CurrentCryptoExtensions")}: {settings.CryptoExtensions}");
+            string extensions = ConsolePrompts.Prompt(_context.LanguageService, "CryptoExtensionsPrompt");
+            var cryptoResult = _context.BackupViewModel.ChangeCryptoExtensions(extensions);
+            System.Console.WriteLine(cryptoResult.Message);
         }
 
         // ── Language loading ─────────────────────────────────────────────────

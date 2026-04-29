@@ -17,13 +17,22 @@ namespace EasySave.ViewModels.Services
         private Logger _logger;
         private readonly string _stateFilePath;
         private readonly List<BackupStateEntry> _allStates;
+        private readonly SettingsService _settingsService;
+        private readonly CryptoSoftService _cryptoSoftService;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-        public BackupService(Logger logger, string stateFilePath, List<BackupStateEntry> allStates)
+        public BackupService(
+            Logger logger,
+            string stateFilePath,
+            List<BackupStateEntry> allStates,
+            SettingsService settingsService,
+            CryptoSoftService cryptoSoftService)
         {
             _logger = logger;
             _stateFilePath = stateFilePath;
             _allStates = allStates;
+            _settingsService = settingsService;
+            _cryptoSoftService = cryptoSoftService;
         }
 
         public void Execute(BackupJob job)
@@ -52,6 +61,7 @@ namespace EasySave.ViewModels.Services
 
             int processed = 0;
             long processedSize = 0;
+            AppSettings settings = _settingsService.Load();
 
             foreach (string sourceFile in files)
             {
@@ -77,12 +87,16 @@ namespace EasySave.ViewModels.Services
                 WriteAllStates();
 
                 long transferTimeMs = 0;
+                long encryptionTimeMs = 0;
                 var stopwatch = Stopwatch.StartNew();
                 try
                 {
                     File.Copy(sourceFile, targetFile, overwrite: true);
                     stopwatch.Stop();
                     transferTimeMs = stopwatch.ElapsedMilliseconds;
+
+                    // Encrypt only after a successful copy, so the source file is never modified.
+                    encryptionTimeMs = _cryptoSoftService.EncryptIfRequired(targetFile, settings.CryptoExtensions);
                 }
                 catch (Exception ex)
                 {
@@ -91,7 +105,7 @@ namespace EasySave.ViewModels.Services
                     state.Error = ex.Message;
                 }
 
-                _logger.WriteLog(job.Name, sourceFile, targetFile, info.Length, transferTimeMs);
+                _logger.WriteLog(job.Name, sourceFile, targetFile, info.Length, transferTimeMs, encryptionTimeMs);
 
                 processed++;
                 processedSize += info.Length;
@@ -116,10 +130,11 @@ namespace EasySave.ViewModels.Services
         /// <summary>
         /// Updates the logger format at runtime (called when user changes log format in settings).
         /// </summary>
-        public void UpdateLogFormat(LogFormat format)
+        public void UpdateLogFormat(string format)
         {
             string dir = Path.Combine(Path.GetDirectoryName(_stateFilePath)!, "Logs");
-            _logger = new Logger(dir, format);
+            LogFormat logFormat = format == "XML" ? LogFormat.Xml : LogFormat.Json;
+            _logger = new Logger(dir, logFormat);
         }
 
         // Writes ALL jobs states into one single state.json (spec: "fichier unique")

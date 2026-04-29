@@ -40,6 +40,7 @@ namespace EasyLog.Services
         /// <param name="targetPath">Destination file path.</param>
         /// <param name="fileSize">File size in bytes.</param>
         /// <param name="transferTimeMs">Transfer time in milliseconds.</param>
+        /// <param name="encryptionTimeMs">Encryption time in milliseconds, or a negative CryptoSoft error code.</param>
         /// <param name="previousHash">Hash of the preceding log entry, or "GENESIS".</param>
         /// <returns>Base64-encoded SHA-256 signature for this entry.</returns>
         public static string BuildLogSignature(
@@ -53,6 +54,22 @@ namespace EasyLog.Services
         {
             string raw =
                 $"{timestamp}|{backupName}|{sourcePath}|{targetPath}|{fileSize}|{transferTimeMs}|{previousHash}";
+
+            return ComputeHash(raw);
+        }
+
+        public static string BuildLogSignature(
+            string timestamp,
+            string backupName,
+            string sourcePath,
+            string targetPath,
+            long fileSize,
+            long transferTimeMs,
+            long encryptionTimeMs,
+            string previousHash)
+        {
+            string raw =
+                $"{timestamp}|{backupName}|{sourcePath}|{targetPath}|{fileSize}|{transferTimeMs}|{encryptionTimeMs}|{previousHash}";
 
             return ComputeHash(raw);
         }

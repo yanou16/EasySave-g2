@@ -39,7 +39,8 @@ namespace EasyLog.Services
             string sourcePath,
             string targetPath,
             long fileSize,
-            long transferTimeMs)
+            long transferTimeMs,
+            long encryptionTimeMs = 0)
         {
             sourcePath = SecurityHelper.NormalizePath(sourcePath);
             targetPath = SecurityHelper.NormalizePath(targetPath);
@@ -48,11 +49,11 @@ namespace EasyLog.Services
 
             if (_format == LogFormat.Xml)
             {
-                WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, timestamp);
+                WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
             }
             else
             {
-                WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, timestamp);
+                WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
             }
         }
 
@@ -63,6 +64,7 @@ namespace EasyLog.Services
             string targetPath,
             long fileSize,
             long transferTimeMs,
+            long encryptionTimeMs,
             string timestamp)
         {
             string logFilePath = Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.json");
@@ -78,9 +80,11 @@ namespace EasyLog.Services
                 TargetPath = targetPath,
                 FileSize = fileSize,
                 TransferTimeMs = transferTimeMs,
+                EncryptionTimeMs = encryptionTimeMs,
                 PreviousHash = previousHash
             };
 
+            // EncryptionTimeMs is part of the new signature so crypto timing cannot be altered silently.
             entry.Hash = SecurityHelper.BuildLogSignature(
                 entry.Timestamp,
                 entry.BackupName,
@@ -88,6 +92,7 @@ namespace EasyLog.Services
                 entry.TargetPath,
                 entry.FileSize,
                 entry.TransferTimeMs,
+                entry.EncryptionTimeMs,
                 entry.PreviousHash);
 
             logs.Add(entry);
@@ -101,6 +106,7 @@ namespace EasyLog.Services
             string targetPath,
             long fileSize,
             long transferTimeMs,
+            long encryptionTimeMs,
             string timestamp)
         {
             string logFilePath = Path.Combine(_logDirectory, $"{DateTime.UtcNow:yyyy-MM-dd}.xml");
@@ -129,6 +135,7 @@ namespace EasyLog.Services
                 targetPath,
                 fileSize,
                 transferTimeMs,
+                encryptionTimeMs,
                 previousHash);
 
             doc.Root!.Add(new XElement("LogEntry",
@@ -138,6 +145,7 @@ namespace EasyLog.Services
                 new XElement("TargetPath", targetPath),
                 new XElement("FileSize", fileSize),
                 new XElement("TransferTimeMs", transferTimeMs),
+                new XElement("EncryptionTimeMs", encryptionTimeMs),
                 new XElement("PreviousHash", previousHash),
                 new XElement("Hash", hash)
             ));

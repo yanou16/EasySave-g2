@@ -25,7 +25,8 @@ namespace EasySave.ViewModels
             var configService   = new ConfigService(appDataDirectory);
             var languageService = new LanguageService();
             var allStates       = new List<BackupStateEntry>();
-            var backupService   = new BackupService(logger, stateFilePath, allStates);
+            var cryptoSoft      = new CryptoSoftService(appDataDirectory);
+            var backupService   = new BackupService(logger, stateFilePath, allStates, settingsService, cryptoSoft);
             var backupViewModel = new BackupViewModel(configService, backupService, languageService, settingsService);
 
             foreach (var job in backupViewModel.Jobs)

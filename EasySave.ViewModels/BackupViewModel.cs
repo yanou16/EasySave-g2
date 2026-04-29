@@ -1,5 +1,3 @@
-using EasyLog.Services;
-using EasyLog;
 using EasySave.Models;
 using EasySave.ViewModels.Services;
 
@@ -63,11 +61,19 @@ namespace EasySave.ViewModels
             return (true, _language.Get("SettingsSaved"));
         }
 
+        /// <summary>Updates the semicolon-separated list of file extensions encrypted through CryptoSoft.</summary>
+        public (bool Success, string Message) ChangeCryptoExtensions(string extensions)
+        {
+            AppSettings settings = _settingsService.Load();
+            settings.CryptoExtensions = extensions.Trim();
+            _settingsService.Save(settings);
+            return (true, _language.Get("SettingsSaved"));
+        }
+
         public void ApplyLogFormat()
         {
             AppSettings settings = _settingsService.Load();
-            LogFormat format     = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
-            _backupService.UpdateLogFormat(format);
+            _backupService.UpdateLogFormat(settings.LogFormat);
         }
 
         // ── Jobs ──────────────────────────────────────────────────────────────
