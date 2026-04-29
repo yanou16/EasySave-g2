@@ -28,3 +28,27 @@ Files added:
 - EasySave.Console/ConsoleUi/ConsolePrompts.cs: centralizes console input prompts and basic user-input parsing.
 - EasySave.Console/Resources/en.json: provides English console labels and user-facing messages.
 - EasySave.Console/Resources/fr.json: provides French console labels and user-facing messages.
+
+29 avril 2026
+
+Task goal:
+Cleanup and CryptoSoft integration.
+
+Implementation intent:
+- Clean up project dependencies.
+- Integrate CryptoSoft.
+- Record encryption time in logs.
+- Prepare a small Windows publish.
+
+Architecture note:
+Views stay focused on UI; services handle backup, logging, and encryption.
+
+Files touched:
+- CryptoSoft project added.
+- Backup flow calls CryptoSoft for configured extensions.
+- Daily logs store encryption timing.
+- Documentation updated.
+
+Validation:
+- Build passed.
+- Small Windows publish prepared.

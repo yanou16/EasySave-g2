@@ -50,11 +50,30 @@ All application data is stored under `%LocalAppData%\ProSoft\EasySave\` — no t
 
 | Limitation | Planned fix |
 |---|---|
-| Maximum 5 backup jobs | Removed in v2.0 |
-| Console interface only | Replaced by WPF GUI in v2.0 |
-| No file encryption | Added in v2.0 via CryptoSoft |
+| Console interface remains supported in v1.1 | WPF interface in v2.0 |
 | No business software detection | Added in v2.0 |
-| Log format JSON only | XML support added in v1.1 |
+| No stop-after-current-file behavior for business software detection | Added in v2.0 |
+
+---
+
+## Version 1.1.0 — April 2026
+
+### Main Delivery
+- **JSON/XML log choice** — users can choose the daily log format from settings.
+- **Settings persistence** — log format and CryptoSoft extensions are saved in configuration.
+- **Unlimited jobs on this branch** — the previous v1.0 limit is no longer enforced.
+
+### v2.0 Progress Included
+- **WPF project added** — graphical interface groundwork is present.
+- **CryptoSoft integration** — configured file extensions are encrypted through the external CryptoSoft executable.
+- **Encryption time in logs** — daily log entries include `EncryptionTimeMs`.
+- **Cleaner project references** — View projects depend only on ViewModels and Models.
+
+### Remaining v2.0 Work
+- Business software detection.
+- Backup blocking when the configured business software is running.
+- Stop-after-current-file behavior during sequential backup.
+- Logging of business-software interruption.
 
 ---
 
@@ -82,3 +101,12 @@ All application data is stored under `%LocalAppData%\ProSoft\EasySave\` — no t
 | EasySave.Models | 1.0.0 | |
 | EasySave.ViewModels | 1.0.0 | Reused in v2.0 WPF |
 | EasySave.Console | 1.0.0 | Replaced by WPF in v2.0 |
+
+### v1.1 Technical Addendum
+
+| Item | Detail |
+|---|---|
+| Log file | `Logs\YYYY-MM-DD.json` or `Logs\YYYY-MM-DD.xml` |
+| Encryption field | `EncryptionTimeMs` |
+| CryptoSoft files | Must be shipped beside the executable |
+| Small publish | Framework-dependent Windows x64 output, requires .NET 8 Runtime |

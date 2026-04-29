@@ -1,5 +1,23 @@
 # EasySave v1.0 — UML Diagrams
 
+## v1.1 / v2.0 Progress Addendum
+
+The original diagrams document the v1.0 delivery. The current branch keeps the same layered direction and adds these structural changes:
+
+- `EasySave.Views.Console` and `EasySave.Views.WPF` are the View projects.
+- View projects reference only `EasySave.ViewModels` and `EasySave.Models`.
+- `EasySave.ViewModels` owns service wiring and depends on `EasyLog` and the CryptoSoft packaging dependency.
+- `CryptoSoftService` calls the external CryptoSoft executable for configured extensions.
+- `BackupService` now performs copy, optional encryption, state update, and daily logging.
+
+Updated sequence for one copied file:
+
+1. Resolve target path.
+2. Copy the source file.
+3. If the extension is configured, call CryptoSoft on the copied target file.
+4. Write the daily log with `TransferTimeMs` and `EncryptionTimeMs`.
+5. Update `state.json`.
+
 ## Use Case Diagram (`use-case.png`)
 
 The use case diagram shows all interactions between the **User** (the only actor) and the EasySave system.
@@ -27,6 +45,8 @@ The class diagram describes the **static structure** of the four projects and th
 **EasySave.ViewModels** contains all business logic. `BackupViewModel` is the central facade used by the view layer; it composes `BackupService` (file copy engine), `ConfigService` (JSON job persistence — Repository pattern), and `LanguageService` (i18n). It depends on both EasySave.Models and EasyLog.
 
 **EasySave.Console** is the presentation layer. `AppBootstrapper` wires all dependencies (Dependency Injection / Composition Root pattern). `ConsoleApp` drives the interactive loop and CLI execution. `CommandLineParser` converts raw arguments into a structured `CommandLineParseResult`. `ConsoleMenu` and `ConsolePrompts` are stateless helpers that handle all console I/O, keeping `ConsoleApp` focused on flow control.
+
+**Current branch note:** service wiring is now centralized through `ViewModelFactory`; View projects do not reference `EasyLog` directly.
 
 ### Design Patterns applied
 

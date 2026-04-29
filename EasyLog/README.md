@@ -5,6 +5,8 @@
 **Compatibility** : EasySave v1.0 and above (all future versions guaranteed compatible)  
 **Author** : ProSoft — Group 2
 
+**v1.1 note** : EasyLog can write JSON or XML daily logs and stores encryption timing for CryptoSoft-enabled backups.
+
 ---
 
 ## Purpose
@@ -17,6 +19,8 @@ EasyLog is a standalone Class Library (DLL) responsible for all persistence oper
 | Persist real-time backup job state to a JSON file | `StateManager` |
 | Verify log file integrity (anti-tampering) | `LogIntegrityVerifier` |
 | Cryptographic utilities (SHA-256, path normalisation) | `SecurityHelper` |
+
+In v1.1, `Logger` supports JSON and XML output and records `EncryptionTimeMs`.
 
 EasyLog has **no dependency** on EasySave business logic. It can be reused in any .NET 8.0 project.
 
@@ -77,6 +81,7 @@ logger.WriteLog(
     "TargetPath": "D:\\Backups\\Documents\\report.docx",
     "FileSize": 45056,
     "TransferTimeMs": 234,
+    "EncryptionTimeMs": 0,
     "PreviousHash": "GENESIS",
     "Hash": "eW91ciBiYXNlNjQgaGFzaA=="
   }
@@ -123,8 +128,10 @@ public class Logger
 
     // Appends one entry to today's log file (yyyy-MM-dd.json).
     // transferTimeMs < 0 → transfer failed.
+    // encryptionTimeMs: 0 = no encryption, >0 = encrypted, <0 = CryptoSoft error.
     public void WriteLog(string backupName, string sourcePath,
-                         string targetPath, long fileSize, long transferTimeMs)
+                         string targetPath, long fileSize, long transferTimeMs,
+                         long encryptionTimeMs = 0)
 }
 ```
 
@@ -170,6 +177,7 @@ public static class SecurityHelper
 | `TargetPath` | `string` | Absolute UNC destination path |
 | `FileSize` | `long` | File size in bytes |
 | `TransferTimeMs` | `long` | Duration in ms (negative = error) |
+| `EncryptionTimeMs` | `long` | `0` no encryption, `>0` duration in ms, `<0` CryptoSoft error |
 | `PreviousHash` | `string` | Hash of the preceding entry (`"GENESIS"` for first) |
 | `Hash` | `string` | SHA-256 signature of this entry |
 
@@ -203,6 +211,8 @@ Entry 3 → Hash = SHA256("...fields...|Entry2.Hash")
 
 Modifying any field in any entry breaks the chain.  
 Use `LogIntegrityVerifier.VerifyLogChain(filePath)` to validate a log file programmatically.
+
+From v1.1 onward, `EncryptionTimeMs` is part of the chained signature. The verifier still accepts legacy v1.0 JSON hashes.
 
 ---
 

@@ -2,6 +2,8 @@
 
 **Publisher** : ProSoft | **Version** : 1.0.0 | **Date** : April 2026
 
+**v1.1 branch note** : this version keeps the console workflow and adds JSON/XML log selection plus CryptoSoft extension settings.
+
 ---
 
 ## Installation
@@ -42,7 +44,8 @@ EasySave.Console.exe 1;3      → runs jobs 1 and 3
 | **3** | Remove a backup job |
 | **4** | Execute one backup job |
 | **5** | Execute all backup jobs sequentially |
-| **6** | Quit |
+| **6** | Settings |
+| **7** | Quit |
 
 ---
 
@@ -55,7 +58,7 @@ Select **2**, then fill in:
 - **Target directory** — where copies will be saved
 - **Type** — `1` Full (copies everything) or `2` Differential (copies only changed files)
 
-Up to **5 jobs** can be configured. They are saved automatically.
+Jobs are saved automatically. The v1.1 branch supports unlimited configured jobs.
 
 ---
 
@@ -74,7 +77,23 @@ Up to **5 jobs** can be configured. They are saved automatically.
 |---|---|---|
 | `jobs.json` | `…\EasySave\` | Your saved backup jobs |
 | `state.json` | `…\EasySave\` | Live progress of the running backup |
-| `YYYY-MM-DD.json` | `…\EasySave\Logs\` | Full log of every file transferred that day |
+| `YYYY-MM-DD.json` or `YYYY-MM-DD.xml` | `…\EasySave\Logs\` | Full log of every file transferred that day |
+
+---
+
+## Settings in v1.1
+
+| Setting | Use |
+|---|---|
+| Log format | Choose `JSON` or `XML` for daily logs |
+| CryptoSoft extensions | Enter extensions to encrypt, separated by semicolons, e.g. `.txt;.docx` |
+
+`EncryptionTimeMs` in the daily log means:
+- `0` : no encryption
+- `>0` : encryption time in milliseconds
+- `<0` : CryptoSoft error code
+
+For the small Windows publish, keep `CryptoSoft.exe`, `CryptoSoft.dll`, and its runtime files beside `EasySave.exe`.
 
 ---
 
@@ -83,5 +102,7 @@ Up to **5 jobs** can be configured. They are saved automatically.
 Default install path: folder containing `EasySave.Console.exe`  
 Config & logs: `%LocalAppData%\ProSoft\EasySave\`  
 Minimum config: Windows 10 · .NET 8.0 Runtime · 50 MB disk space
+
+Small publish requirement: .NET 8 Runtime must be installed on the client machine.
 
 Contact your system administrator or ProSoft support for any issue.

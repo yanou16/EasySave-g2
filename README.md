@@ -3,6 +3,8 @@
 > Professional backup software developed by **ProSoft** — Livrable 01  
 > PGE A3 FISE — Génie Logiciel 2025-2026
 
+> Current branch note: this branch is treated as **EasySave v1.1**. It keeps the v1.0 console base, adds JSON/XML log selection, and includes v2.0 progress items such as WPF groundwork and CryptoSoft integration.
+
 **Team — Groupe 02**
 
 | Member | Role |
@@ -47,6 +49,12 @@ EasySave is a backup management tool built for ProSoft's software suite. It allo
 - **Daily JSON log** — full audit trail via `EasyLog.dll` with SHA-256 tamper detection
 - **MVVM-ready architecture** — designed for easy migration to WPF GUI (v2.0)
 
+### v1.1 Additions
+
+- **JSON or XML daily logs** — user-selectable log format persisted in settings.
+- **Unlimited jobs on this branch** — job management no longer enforces the v1.0 limit.
+- **CryptoSoft groundwork** — configured extensions can be encrypted during backup, and logs record encryption time.
+
 ---
 
 ## 2. Architecture
@@ -78,15 +86,29 @@ EasySave follows a **MVVM-inspired layered architecture**. Each layer is a separ
 ### Dependency Rules (one-way only)
 
 ```
-Console  →  ViewModels  →  Models
-                       →  EasyLog
+Views  →  ViewModels  →  Models
+                    →  EasyLog
+                    →  CryptoSoft packaging
 ```
 
 No layer ever references a layer above it. This guarantees that `EasySave.ViewModels` can be reused in the future WPF application without any modification.
 
+Current View projects (`EasySave.Views.Console`, `EasySave.Views.WPF`) reference only `EasySave.ViewModels` and `EasySave.Models`.
+
 ---
 
 ## 3. Project Structure
+
+### v1.1 / v2.0 progress projects
+
+| Project | Role |
+|---|---|
+| `EasySave.Views.Console` | Console presentation layer |
+| `EasySave.Views.WPF` | WPF presentation layer started for v2.0 |
+| `EasySave.ViewModels` | Shared orchestration, services, settings, backup execution |
+| `EasySave.Models` | Shared data models |
+| `EasyLog` | JSON/XML logs and state models |
+| `CryptoSoft` | External encryption executable used by the backup service |
 
 ```
 EasySave-g2/
@@ -269,7 +291,8 @@ Backup job added successfully.
 ```
 
 **Rules:**
-- Maximum **5 jobs** can be configured
+- v1.0 delivery: maximum **5 jobs** can be configured
+- Current v1.1 branch: job count is unlimited
 - Job names must be **unique**
 - Source and target can be local drives, external drives, or network paths (UNC)
 - All files and sub-directories are included
@@ -387,7 +410,7 @@ Updated after **every single file** operation so external monitoring tools can r
 
 ### `Logs\YYYY-MM-DD.json` — Daily audit log
 
-One file per day. Each entry is **cryptographically chained** with SHA-256 — modifying any entry breaks the chain, making tampering detectable.
+One file per day. In v1.1 the user can choose JSON or XML. Each entry is **cryptographically chained** with SHA-256 — modifying any entry breaks the chain, making tampering detectable.
 
 ```json
 [
@@ -398,6 +421,7 @@ One file per day. Each entry is **cryptographically chained** with SHA-256 — m
     "TargetPath": "D:\\Backup\\Docs\\report.docx",
     "FileSize": 45056,
     "TransferTimeMs": 18,
+    "EncryptionTimeMs": 0,
     "PreviousHash": "GENESIS",
     "Hash": "eW91ciBiYXNlNjQgaGFzaA=="
   }
@@ -405,6 +429,7 @@ One file per day. Each entry is **cryptographically chained** with SHA-256 — m
 ```
 
 `TransferTimeMs` is **negative** if the file copy failed (absolute value = elapsed time before failure).
+`EncryptionTimeMs` is `0` when no encryption was applied, positive when CryptoSoft succeeds, and negative when CryptoSoft returns an error code.
 
 ---
 
@@ -461,6 +486,15 @@ Shows the decision flow from launch: CLI arguments present? → parse & execute 
 | Languages | English · French |
 | External dependencies | None (only .NET 8.0 BCL) |
 
+### v1.1 Technical Addendum
+
+| Item | Detail |
+|---|---|
+| Log format | JSON or XML, selected by user |
+| Encryption | CryptoSoft executable, applied only to configured extensions |
+| Encryption log field | `EncryptionTimeMs` |
+| Small publish | Framework-dependent `win-x64`, requires .NET 8 Runtime |
+
 ---
 
 ## 11. Roadmap
@@ -468,9 +502,18 @@ Shows the decision flow from launch: CLI arguments present? → parse & execute 
 | Version | Status | Changes |
 |---|---|---|
 | **1.0** | ✅ Released | Console app, 5 jobs, full/differential, logs, state, FR/EN |
-| **1.1** | 🔜 Planned | XML log format option (alongside JSON) |
-| **2.0** | 🔜 Planned | WPF GUI, unlimited jobs, CryptoSoft encryption, business software detection |
+| **1.1** | In progress | JSON/XML log format option, unlimited jobs on this branch |
+| **2.0** | In progress | WPF project, CryptoSoft encryption, encryption-time logs |
 | **3.0** | 🔜 Planned | Play/Pause/Stop per job, advanced scheduling |
+
+### v2.0 Progress Checklist
+
+- Done: WPF project exists.
+- Done: Console and WPF share ViewModels and Models.
+- Done: CryptoSoft is integrated through the backup service.
+- Done: Daily logs include encryption timing.
+- Not done: business software detection and blocking.
+- Not done: stop-after-current-file behavior when business software appears.
 
 > The `EasySave.ViewModels` layer is already decoupled from the console and will be reused without modification in v2.0.
 
