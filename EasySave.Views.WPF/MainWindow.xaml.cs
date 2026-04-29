@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using EasySave.ViewModels;
 using EasySave.ViewModels.Services;
 
@@ -8,16 +9,73 @@ namespace EasySave.Views.WPF
     {
         private readonly BackupViewModel _viewModel;
         private readonly LanguageService _language;
+        private bool _languageComboReady = false;
 
         public MainWindow(BackupViewModel viewModel, LanguageService language)
         {
             InitializeComponent();
             _viewModel = viewModel;
             _language  = language;
+
+            InitLanguageCombo();
+            RefreshLanguage();
             RefreshJobsList();
         }
 
-        // ── Helpers ──────────────────────────────────────────────────────────
+        // ── Language ──────────────────────────────────────────────────────────
+
+        private void InitLanguageCombo()
+        {
+            string saved = _viewModel.GetSettings().Language;
+            CmbLanguage.SelectedIndex = saved == "fr" ? 1 : 0;
+            _languageComboReady = true;
+        }
+
+        private void CmbLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_languageComboReady) return;
+
+            string lang = ((ComboBoxItem)CmbLanguage.SelectedItem).Tag.ToString() ?? "en";
+
+            // Load embedded resources for the chosen language
+            var assembly   = typeof(MainWindow).Assembly;
+            string resName = $"EasySave.Views.WPF.Resources.{lang}.json";
+            using var stream = assembly.GetManifestResourceStream(resName)
+                            ?? assembly.GetManifestResourceStream("EasySave.Views.WPF.Resources.en.json");
+
+            if (stream is not null)
+            {
+                using var reader = new System.IO.StreamReader(stream);
+                _language.LoadFromJson(reader.ReadToEnd());
+            }
+
+            // Persist language choice
+            var settings  = _viewModel.GetSettings();
+            settings.Language = lang;
+            _viewModel.SaveSettings(settings);
+
+            RefreshLanguage();
+        }
+
+        /// <summary>Updates all UI text from the LanguageService.</summary>
+        private void RefreshLanguage()
+        {
+            BtnAdd.Content        = _language.Get("MenuAddJob");
+            BtnRemove.Content     = _language.Get("MenuRemoveJob");
+            BtnExecute.Content    = _language.Get("MenuExecuteJob");
+            BtnExecuteAll.Content = _language.Get("MenuExecuteAllJobs");
+            BtnSettings.Content   = _language.Get("MenuSettings");
+
+            ColId.Header     = "Id";
+            ColName.Header   = _language.Get("LabelName");
+            ColSource.Header = _language.Get("LabelSource");
+            ColTarget.Header = _language.Get("LabelTarget");
+            ColType.Header   = _language.Get("LabelType");
+
+            SetStatus(_language.Get("StatusReady"));
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
 
         private void RefreshJobsList()
         {
@@ -49,7 +107,7 @@ namespace EasySave.Views.WPF
         {
             if (JobsGrid.SelectedIndex < 0)
             {
-                SetStatus("Please select a job to remove.", isError: true);
+                SetStatus(_language.Get("NoJobSelected"), isError: true);
                 return;
             }
 
@@ -62,7 +120,7 @@ namespace EasySave.Views.WPF
         {
             if (JobsGrid.SelectedIndex < 0)
             {
-                SetStatus("Please select a job to execute.", isError: true);
+                SetStatus(_language.Get("NoJobSelected"), isError: true);
                 return;
             }
 
@@ -93,7 +151,15 @@ namespace EasySave.Views.WPF
         private void BtnSettings_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new SettingsWindow(_viewModel, _language);
-            dialog.ShowDialog();
+            if (dialog.ShowDialog() != true) return;
+
+            // Re-sync language combo if changed from settings window
+            string lang = _viewModel.GetSettings().Language;
+            _languageComboReady = false;
+            CmbLanguage.SelectedIndex = lang == "fr" ? 1 : 0;
+            _languageComboReady = true;
+
+            RefreshLanguage();
             SetStatus(_language.Get("SettingsSaved"));
         }
     }

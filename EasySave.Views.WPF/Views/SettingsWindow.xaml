@@ -1,26 +1,61 @@
 <Window x:Class="EasySave.Views.WPF.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Settings" Height="200" Width="360"
+        Title="Settings" Height="300" Width="420"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
         <!-- Log format -->
-        <Label Grid.Row="0" Content="Log format:" FontWeight="SemiBold"/>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,12">
+        <Label Grid.Row="0" Grid.Column="0" Content="Log format :" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,6">
             <RadioButton x:Name="RbJson" Content="JSON" IsChecked="True" Margin="0,0,16,0"/>
             <RadioButton x:Name="RbXml"  Content="XML"/>
         </StackPanel>
 
+        <!-- Separator -->
+        <Separator Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,6"/>
+
+        <!-- Business software -->
+        <Label Grid.Row="2" Grid.Column="0" Content="Business software :" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtBusinessSoftware"
+                 Margin="0,6" ToolTip="Process name without .exe (e.g. calc)"/>
+
+        <!-- Separator -->
+        <Separator Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,6"/>
+
+        <!-- Crypto extensions -->
+        <Label Grid.Row="4" Grid.Column="0" Content="Crypto extensions :" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtCryptoExtensions"
+                 Margin="0,6" ToolTip="Semicolon-separated extensions (e.g. .txt;.docx)"/>
+
+        <!-- Separator -->
+        <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,6"/>
+
+        <!-- Language -->
+        <Label Grid.Row="6" Grid.Column="0" Content="Language :" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,6">
+            <RadioButton x:Name="RbEn" Content="English" IsChecked="True" Margin="0,0,16,0"/>
+            <RadioButton x:Name="RbFr" Content="Français"/>
+        </StackPanel>
+
         <!-- Save button -->
-        <Button Grid.Row="3" Content="Save" Width="80"
-                HorizontalAlignment="Right" Click="BtnSave_Click"/>
+        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
+                Content="Save" Width="90" HorizontalAlignment="Right"
+                Margin="0,10,0,0" Click="BtnSave_Click"/>
     </Grid>
 </Window>

@@ -11,8 +11,8 @@ namespace EasySave.ViewModels
     /// </summary>
     public class BackupViewModel
     {
-        private readonly ConfigService _configService;
-        private readonly BackupService _backupService;
+        private readonly ConfigService  _configService;
+        private readonly BackupService  _backupService;
         private readonly LanguageService _language;
         private readonly SettingsService _settingsService;
         private List<BackupJob> _jobs;
@@ -21,79 +21,81 @@ namespace EasySave.ViewModels
         public IReadOnlyList<BackupJob> Jobs => _jobs.AsReadOnly();
 
         public BackupViewModel(
-            ConfigService configService,
-            BackupService backupService,
+            ConfigService   configService,
+            BackupService   backupService,
             LanguageService language,
             SettingsService settingsService)
         {
-            _configService = configService;
-            _backupService = backupService;
-            _language = language;
+            _configService   = configService;
+            _backupService   = backupService;
+            _language        = language;
             _settingsService = settingsService;
-            _jobs = configService.LoadJobs();
-
-            // Apply saved log format to the backup service
+            _jobs            = configService.LoadJobs();
             ApplyLogFormat();
         }
 
-        /// <summary>
-        /// Reads the saved log format setting and updates the BackupService logger accordingly.
-        /// </summary>
-        public void ApplyLogFormat()
+        // ── Settings ──────────────────────────────────────────────────────────
+
+        /// <summary>Returns current saved settings.</summary>
+        public AppSettings GetSettings() => _settingsService.Load();
+
+        /// <summary>Saves all settings at once and applies the log format immediately.</summary>
+        public (bool Success, string Message) SaveSettings(AppSettings settings)
         {
-            AppSettings settings = _settingsService.Load();
-            LogFormat format = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
-            _backupService.UpdateLogFormat(format);
+            if (settings.LogFormat != "JSON" && settings.LogFormat != "XML")
+                return (false, _language.Get("InvalidLogFormat"));
+
+            _settingsService.Save(settings);
+            ApplyLogFormat();
+            return (true, _language.Get("SettingsSaved"));
         }
 
-        /// <summary>
-        /// Updates the log format setting and applies it immediately.
-        /// </summary>
+        /// <summary>Updates only the log format and applies it immediately.</summary>
         public (bool Success, string Message) ChangeLogFormat(string format)
         {
             if (format != "JSON" && format != "XML")
                 return (false, _language.Get("InvalidLogFormat"));
 
             AppSettings settings = _settingsService.Load();
-            settings.LogFormat = format;
+            settings.LogFormat   = format;
             _settingsService.Save(settings);
-
             ApplyLogFormat();
             return (true, _language.Get("SettingsSaved"));
         }
 
-        /// <summary>Adds a new backup job. Returns success flag + localized message.</summary>
+        public void ApplyLogFormat()
+        {
+            AppSettings settings = _settingsService.Load();
+            LogFormat format     = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
+            _backupService.UpdateLogFormat(format);
+        }
+
+        // ── Jobs ──────────────────────────────────────────────────────────────
+
+        /// <summary>Adds a new backup job (unlimited in v2.0).</summary>
         public (bool Success, string Message) AddJob(string name, string source, string target, BackupType type)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                return (false, _language.Get("EmptyName"));
-
-            if (string.IsNullOrWhiteSpace(source))
-                return (false, _language.Get("EmptySource"));
-
-            if (string.IsNullOrWhiteSpace(target))
-                return (false, _language.Get("EmptyTarget"));
-
-            if (_jobs.Count >= 5)
-                return (false, _language.Get("MaxJobsReached"));
+            if (string.IsNullOrWhiteSpace(name))   return (false, _language.Get("EmptyName"));
+            if (string.IsNullOrWhiteSpace(source))  return (false, _language.Get("EmptySource"));
+            if (string.IsNullOrWhiteSpace(target))  return (false, _language.Get("EmptyTarget"));
 
             if (_jobs.Any(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return (false, _language.Get("JobNameExists"));
 
             _jobs.Add(new BackupJob
             {
-                Id = _jobs.Count + 1,
-                Name = name,
+                Id              = _jobs.Count + 1,
+                Name            = name,
                 SourceDirectory = source,
                 TargetDirectory = target,
-                Type = type
+                Type            = type
             });
 
             _configService.SaveJobs(_jobs);
             return (true, _language.Get("JobAdded"));
         }
 
-        /// <summary>Removes a job by 0-based index. Returns success flag + localized message.</summary>
+        /// <summary>Removes a job by 0-based index.</summary>
         public (bool Success, string Message) RemoveJob(int index)
         {
             if (index < 0 || index >= _jobs.Count)

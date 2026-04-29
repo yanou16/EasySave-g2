@@ -15,4 +15,11 @@
     <ProjectReference Include="..\EasySave.ViewModels\EasySave.ViewModels.csproj" />
     <ProjectReference Include="..\EasySave.Models\EasySave.Models.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\*.json" />
+    <None Update="Resources\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

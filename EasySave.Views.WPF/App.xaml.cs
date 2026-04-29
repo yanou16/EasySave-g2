@@ -7,10 +7,8 @@ namespace EasySave.Views.WPF
 {
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        private void OnStartup(object sender, StartupEventArgs e)
         {
-            base.OnStartup(e);
-
             string appDataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "ProSoft",
