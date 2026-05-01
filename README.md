@@ -474,16 +474,3 @@ Shows the decision flow from launch: CLI arguments present? → parse & execute 
 
 > The `EasySave.ViewModels` layer is already decoupled from the console and will be reused without modification in v2.0.
 
----
-
-## Support Information
-
-| Item | Value |
-|---|---|
-| Default install path | Folder containing `EasySave.Console.exe` |
-| Config & logs | `%LocalAppData%\ProSoft\EasySave\` |
-| Min. OS | Windows 10 |
-| Min. RAM | 512 MB |
-| Min. disk | 50 MB |
-| Support hours | 5/7 — 8h to 17h |
-| Maintenance contract | 12% of purchase price per year (SYNTEC index) |
