@@ -502,8 +502,8 @@ Shows the decision flow from launch: CLI arguments present? → parse & execute 
 | Version | Status | Changes |
 |---|---|---|
 | **1.0** | ✅ Released | Console app, 5 jobs, full/differential, logs, state, FR/EN |
-| **1.1** | In progress | JSON/XML log format option, unlimited jobs on this branch |
-| **2.0** | In progress | WPF project, CryptoSoft encryption, encryption-time logs |
+| **1.1** | ✅ Released | JSON/XML log format option, unlimited jobs on this branch |
+| **2.0** | ✅ Released | WPF project, CryptoSoft encryption, encryption-time logs |
 | **3.0** | 🔜 Planned | Play/Pause/Stop per job, advanced scheduling |
 
 ### v2.0 Progress Checklist
@@ -512,8 +512,8 @@ Shows the decision flow from launch: CLI arguments present? → parse & execute 
 - Done: Console and WPF share ViewModels and Models.
 - Done: CryptoSoft is integrated through the backup service.
 - Done: Daily logs include encryption timing.
-- Not done: business software detection and blocking.
-- Not done: stop-after-current-file behavior when business software appears.
+- Done: business software detection and blocking.
+- Done: stop-after-current-file behavior when business software appears.
 
 > The `EasySave.ViewModels` layer is already decoupled from the console and will be reused without modification in v2.0.
 
