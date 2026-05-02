@@ -44,14 +44,14 @@ namespace EasySave.Views.WPF
 
             _viewModel.SaveSettings(settings);
 
-            // Reload language in the service so the UI updates immediately
-            string lang = settings.Language;
-            _language.Load(
-                System.IO.Path.Combine(AppContext.BaseDirectory, "Resources"),
-                lang);
+            // Reload language from embedded resources (works in single-file publish).
+            LoadLanguageFromEmbeddedResource(settings.Language);
 
             DialogResult = true;
             Close();
         }
+
+        private void LoadLanguageFromEmbeddedResource(string lang) =>
+            MainWindow.LoadLanguageFromEmbeddedResource(_language, lang);
     }
 }

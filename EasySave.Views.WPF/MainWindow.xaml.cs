@@ -17,6 +17,10 @@ namespace EasySave.Views.WPF
             _viewModel = viewModel;
             _language  = language;
 
+            // Load saved language from embedded resources before building the UI.
+            string savedLang = _viewModel.GetSettings().Language;
+            LoadLanguageFromEmbeddedResource(savedLang);
+
             InitLanguageCombo();
             RefreshLanguage();
             RefreshJobsList();
@@ -37,17 +41,7 @@ namespace EasySave.Views.WPF
 
             string lang = ((ComboBoxItem)CmbLanguage.SelectedItem).Tag.ToString() ?? "en";
 
-            // Load embedded resources for the chosen language
-            var assembly   = typeof(MainWindow).Assembly;
-            string resName = $"EasySave.Views.WPF.Resources.{lang}.json";
-            using var stream = assembly.GetManifestResourceStream(resName)
-                            ?? assembly.GetManifestResourceStream("EasySave.Views.WPF.Resources.en.json");
-
-            if (stream is not null)
-            {
-                using var reader = new System.IO.StreamReader(stream);
-                _language.LoadFromJson(reader.ReadToEnd());
-            }
+            LoadLanguageFromEmbeddedResource(lang);
 
             // Persist language choice
             var settings  = _viewModel.GetSettings();
@@ -56,6 +50,24 @@ namespace EasySave.Views.WPF
 
             RefreshLanguage();
         }
+
+        /// <summary>Loads a language JSON from the embedded resources of this assembly.</summary>
+        internal static void LoadLanguageFromEmbeddedResource(LanguageService languageService, string lang)
+        {
+            var assembly   = typeof(MainWindow).Assembly;
+            string resName = $"EasySave.Views.WPF.Resources.{lang}.json";
+            using var stream = assembly.GetManifestResourceStream(resName)
+                            ?? assembly.GetManifestResourceStream("EasySave.Views.WPF.Resources.en.json");
+
+            if (stream is not null)
+            {
+                using var reader = new System.IO.StreamReader(stream);
+                languageService.LoadFromJson(reader.ReadToEnd());
+            }
+        }
+
+        private void LoadLanguageFromEmbeddedResource(string lang) =>
+            LoadLanguageFromEmbeddedResource(_language, lang);
 
         /// <summary>Updates all UI text from the LanguageService.</summary>
         private void RefreshLanguage()

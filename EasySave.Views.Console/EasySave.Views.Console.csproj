@@ -6,6 +6,12 @@
     <Nullable>enable</Nullable>
     <AssemblyName>EasySave</AssemblyName>
     <RootNamespace>EasySave.Views.Console</RootNamespace>
+    <!-- Publish as self-contained single-file for Windows x64 — no .NET runtime required on target machine. -->
+    <!-- PublishTrimmed intentionally omitted: JSON reflection (SettingsService) breaks when trimmed. -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <!-- Views reference only ViewModels and Models (pure DTOs). Never EasyLog directly. -->

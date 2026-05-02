@@ -7,6 +7,12 @@
     <Nullable>enable</Nullable>
     <AssemblyName>EasySave.GUI</AssemblyName>
     <RootNamespace>EasySave.Views.WPF</RootNamespace>
+    <!-- Publish as self-contained single-file for Windows x64 — no .NET runtime required on target machine. -->
+    <!-- WPF does NOT support PublishTrimmed — leave it off. -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <!-- Views reference only ViewModels and Models (pure DTOs). Never EasyLog directly. -->
