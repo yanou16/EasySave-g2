@@ -108,9 +108,16 @@ namespace EasySave.Views.Console.ConsoleUi
 
         private void AddJob()
         {
-            string name   = ConsolePrompts.Prompt(_context.LanguageService, "PromptName");
-            string source = ConsolePrompts.Prompt(_context.LanguageService, "PromptSource");
-            string target = ConsolePrompts.Prompt(_context.LanguageService, "PromptTarget");
+            // v1.1 keeps the 5-job limit (v2.0 GUI is unlimited).
+            if (_context.BackupViewModel.Jobs.Count >= 5)
+            {
+                System.Console.WriteLine(_context.LanguageService.Get("MaxJobsReached"));
+                return;
+            }
+
+            string name     = ConsolePrompts.Prompt(_context.LanguageService, "PromptName");
+            string source   = ConsolePrompts.Prompt(_context.LanguageService, "PromptSource");
+            string target   = ConsolePrompts.Prompt(_context.LanguageService, "PromptTarget");
             BackupType type = ConsolePrompts.PromptBackupType(_context.LanguageService);
 
             var result = _context.BackupViewModel.AddJob(name, source, target, type);
