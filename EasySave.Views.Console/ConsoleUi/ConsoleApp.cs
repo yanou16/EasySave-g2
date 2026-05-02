@@ -1,6 +1,7 @@
 using EasySave.Views.Console.Bootstrap;
 using EasySave.Views.Console.Cli;
 using EasySave.Models;
+using EasySave.ViewModels.Services;
 
 namespace EasySave.Views.Console.ConsoleUi
 {
@@ -59,6 +60,11 @@ namespace EasySave.Views.Console.ConsoleUi
                     _context.BackupViewModel.ExecuteJob(index);
                     System.Console.WriteLine(
                         $"{_context.LanguageService.Get("CliExecutedPrefix")} {_context.BackupViewModel.Jobs[index].Name}");
+                }
+                catch (BusinessSoftwareDetectedException ex)
+                {
+                    System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
+                    return 1;
                 }
                 catch (Exception ex)
                 {
@@ -151,6 +157,10 @@ namespace EasySave.Views.Console.ConsoleUi
                 _context.BackupViewModel.ExecuteJob(index);
                 System.Console.WriteLine(_context.LanguageService.Get("ExecutionCompleted"));
             }
+            catch (BusinessSoftwareDetectedException ex)
+            {
+                System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
+            }
             catch (Exception ex)
             {
                 System.Console.WriteLine($"{_context.LanguageService.Get("ExecutionFailed")}: {ex.Message}");
@@ -169,6 +179,10 @@ namespace EasySave.Views.Console.ConsoleUi
             {
                 _context.BackupViewModel.ExecuteAllJobs();
                 System.Console.WriteLine(_context.LanguageService.Get("ExecutionCompleted"));
+            }
+            catch (BusinessSoftwareDetectedException ex)
+            {
+                System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
             }
             catch (Exception ex)
             {

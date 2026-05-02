@@ -20,19 +20,22 @@ namespace EasySave.ViewModels.Services
         private readonly SettingsService _settingsService;
         private readonly CryptoSoftService _cryptoSoftService;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+        private readonly BusinessSoftwareWatcher _businessWatcher;
 
         public BackupService(
             Logger logger,
             string stateFilePath,
             List<BackupStateEntry> allStates,
             SettingsService settingsService,
-            CryptoSoftService cryptoSoftService)
+            CryptoSoftService cryptoSoftService,
+            BusinessSoftwareWatcher businessWatcher)
         {
             _logger = logger;
             _stateFilePath = stateFilePath;
             _allStates = allStates;
             _settingsService = settingsService;
             _cryptoSoftService = cryptoSoftService;
+            _businessWatcher = businessWatcher;
         }
 
         public void Execute(BackupJob job)
@@ -65,6 +68,13 @@ namespace EasySave.ViewModels.Services
 
             foreach (string sourceFile in files)
             {
+                var detected = _businessWatcher.GetRunningBusinessSoftware();
+
+                if (detected != null)
+                {
+                    _logger.LogBusinessSoftwareDetected(job.Name, detected);
+                    throw new BusinessSoftwareDetectedException(detected);
+                }
                 string relativePath = Path.GetRelativePath(job.SourceDirectory, sourceFile);
                 string targetFile = Path.Combine(job.TargetDirectory, relativePath);
                 var info = new FileInfo(sourceFile);

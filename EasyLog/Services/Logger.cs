@@ -9,6 +9,9 @@ namespace EasyLog.Services
     /// One log file is created per calendar day under the configured directory.
     /// Compatible with all EasySave versions (v1.0 and above).
     /// </summary>
+    /// 
+
+
     public class Logger
     {
         private readonly string _logDirectory;
@@ -23,6 +26,7 @@ namespace EasyLog.Services
         /// <summary>
         /// v1.1+ constructor — caller chooses JSON or XML.
         /// </summary>
+        /// 
         public Logger(string logDirectory, LogFormat format)
         {
             _logDirectory = logDirectory;
@@ -165,6 +169,18 @@ namespace EasyLog.Services
                     : JsonSerializer.Deserialize<List<LogEntry>>(json) ?? new List<LogEntry>();
             }
             catch { return new List<LogEntry>(); }
+        }
+
+        public void LogBusinessSoftwareDetected(string backupName, string softwareName)
+        {
+            WriteLog(
+                backupName,
+                $"BLOCKED:{softwareName}",                 // Source spéciale
+                softwareName,                        // Target = nom logiciel
+                0,
+                0,
+                0
+            );
         }
     }
 }
