@@ -1,7 +1,7 @@
 using System.Windows;
+using Microsoft.Win32;
 using EasySave.Models;
 using EasySave.ViewModels.Services;
-using WinForms = System.Windows.Forms;
 
 namespace EasySave.Views.WPF
 {
@@ -53,10 +53,11 @@ namespace EasySave.Views.WPF
             Close();
         }
 
+        // Uses WPF native OpenFolderDialog (.NET 8) — no WinForms dependency needed.
         private static string? BrowseFolder()
         {
-            using var dialog = new WinForms.FolderBrowserDialog();
-            return dialog.ShowDialog() == WinForms.DialogResult.OK ? dialog.SelectedPath : null;
+            var dialog = new OpenFolderDialog { Title = "Select a folder" };
+            return dialog.ShowDialog() == true ? dialog.FolderName : null;
         }
     }
 }

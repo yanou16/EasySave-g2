@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <AssemblyName>EasySave</AssemblyName>
     <RootNamespace>EasySave.Views.Console</RootNamespace>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
   </PropertyGroup>
 
   <!-- Views reference only ViewModels and Models (pure DTOs). Never EasyLog directly. -->

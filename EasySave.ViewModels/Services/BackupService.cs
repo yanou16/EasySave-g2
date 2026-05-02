@@ -40,6 +40,14 @@ namespace EasySave.ViewModels.Services
 
         public void Execute(BackupJob job)
         {
+            // Block launch if business software is already running (spec: "interdire le lancement").
+            var detectedAtLaunch = _businessWatcher.GetRunningBusinessSoftware();
+            if (detectedAtLaunch != null)
+            {
+                _logger.LogBusinessSoftwareDetected(job.Name, detectedAtLaunch);
+                throw new BusinessSoftwareDetectedException(detectedAtLaunch);
+            }
+
             if (!Directory.Exists(job.SourceDirectory))
                 throw new DirectoryNotFoundException($"Source directory not found: {job.SourceDirectory}");
 

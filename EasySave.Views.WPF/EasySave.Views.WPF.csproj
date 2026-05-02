@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
     <AssemblyName>EasySave.GUI</AssemblyName>
     <RootNamespace>EasySave.Views.WPF</RootNamespace>
-    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <!-- Views reference only ViewModels and Models (pure DTOs). Never EasyLog directly. -->

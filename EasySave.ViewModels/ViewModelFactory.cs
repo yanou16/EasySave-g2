@@ -27,11 +27,13 @@ namespace EasySave.ViewModels
             var allStates       = new List<BackupStateEntry>();
             var cryptoSoft      = new CryptoSoftService(appDataDirectory);
 
-            var businessList = new List<string>
-{
-    "calc",
-    "CalculatorApp",
-};
+            // Read business software list from user settings (empty = detection disabled).
+            var businessList = string.IsNullOrWhiteSpace(settings.BusinessSoftware)
+                ? new List<string>()
+                : settings.BusinessSoftware
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList();
+
             var businessWatcher = new BusinessSoftwareWatcher(businessList);
 
             var backupService   = new BackupService(logger, stateFilePath, allStates, settingsService, cryptoSoft, businessWatcher);
