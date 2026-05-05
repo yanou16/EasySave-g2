@@ -6,27 +6,20 @@ namespace EasyLog.Services
 {
     /// <summary>
     /// Writes file transfer events to a daily log file (JSON or XML) with chained SHA-256 integrity hashing.
-    /// One log file is created per calendar day under the configured directory.
+    /// Thread-safe for parallel backup jobs (v3.0).
     /// Compatible with all EasySave versions (v1.0 and above).
     /// </summary>
-    /// 
-
-
     public class Logger
     {
         private readonly string _logDirectory;
         private readonly LogFormat _format;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-        /// <summary>
-        /// v1.0-compatible constructor — defaults to JSON.
-        /// </summary>
+        // Thread-safety: one write at a time per logger instance
+        private readonly object _fileLock = new();
+
         public Logger(string logDirectory) : this(logDirectory, LogFormat.Json) { }
 
-        /// <summary>
-        /// v1.1+ constructor — caller chooses JSON or XML.
-        /// </summary>
-        /// 
         public Logger(string logDirectory, LogFormat format)
         {
             _logDirectory = logDirectory;
@@ -36,7 +29,7 @@ namespace EasyLog.Services
 
         /// <summary>
         /// Appends a file transfer event to today's log file.
-        /// Format (JSON or XML) is determined by the constructor parameter.
+        /// Thread-safe — can be called from multiple parallel jobs simultaneously.
         /// </summary>
         public void WriteLog(
             string backupName,
@@ -48,20 +41,17 @@ namespace EasyLog.Services
         {
             sourcePath = SecurityHelper.NormalizePath(sourcePath);
             targetPath = SecurityHelper.NormalizePath(targetPath);
-
             string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
-            if (_format == LogFormat.Xml)
+            lock (_fileLock)
             {
-                WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
-            }
-            else
-            {
-                WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
+                if (_format == LogFormat.Xml)
+                    WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
+                else
+                    WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
             }
         }
 
-        // ── JSON (original logic, unchanged) ────────────────────────────────
         private void WriteJson(
             string backupName,
             string sourcePath,
@@ -88,7 +78,6 @@ namespace EasyLog.Services
                 PreviousHash = previousHash
             };
 
-            // EncryptionTimeMs is part of the new signature so crypto timing cannot be altered silently.
             entry.Hash = SecurityHelper.BuildLogSignature(
                 entry.Timestamp,
                 entry.BackupName,
@@ -103,7 +92,6 @@ namespace EasyLog.Services
             File.WriteAllText(logFilePath, JsonSerializer.Serialize(logs, JsonOptions));
         }
 
-        // ── XML (new for v1.1) ───────────────────────────────────────────────
         private void WriteXml(
             string backupName,
             string sourcePath,
@@ -133,14 +121,8 @@ namespace EasyLog.Services
             }
 
             string hash = SecurityHelper.BuildLogSignature(
-                timestamp,
-                backupName,
-                sourcePath,
-                targetPath,
-                fileSize,
-                transferTimeMs,
-                encryptionTimeMs,
-                previousHash);
+                timestamp, backupName, sourcePath, targetPath,
+                fileSize, transferTimeMs, encryptionTimeMs, previousHash);
 
             doc.Root!.Add(new XElement("LogEntry",
                 new XElement("Timestamp", timestamp),
@@ -157,7 +139,6 @@ namespace EasyLog.Services
             doc.Save(logFilePath);
         }
 
-        // ── Helpers ──────────────────────────────────────────────────────────
         private static List<LogEntry> LoadExistingLogs(string logFilePath)
         {
             if (!File.Exists(logFilePath)) return new List<LogEntry>();
@@ -173,14 +154,7 @@ namespace EasyLog.Services
 
         public void LogBusinessSoftwareDetected(string backupName, string softwareName)
         {
-            WriteLog(
-                backupName,
-                $"BLOCKED:{softwareName}",                 // Source spéciale
-                softwareName,                        // Target = nom logiciel
-                0,
-                0,
-                0
-            );
+            WriteLog(backupName, $"BLOCKED:{softwareName}", softwareName, 0, 0, 0);
         }
     }
 }

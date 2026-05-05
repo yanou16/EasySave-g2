@@ -14,20 +14,20 @@ namespace EasySave.ViewModels
         public static (BackupViewModel BackupViewModel, LanguageService LanguageService) Create(
             string appDataDirectory)
         {
-            string logsDirectory   = Path.Combine(appDataDirectory, "Logs");
-            string stateFilePath   = Path.Combine(appDataDirectory, "state.json");
+            string logsDirectory = Path.Combine(appDataDirectory, "Logs");
+            string stateFilePath = Path.Combine(appDataDirectory, "state.json");
 
             var settingsService = new SettingsService();
-            var settings        = settingsService.Load();
-            var logFormat       = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
+            var settings = settingsService.Load();
+            var logFormat = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
 
-            var logger          = new Logger(logsDirectory, logFormat);
-            var configService   = new ConfigService(appDataDirectory);
+            var logger = new Logger(logsDirectory, logFormat);
+            var configService = new ConfigService(appDataDirectory);
             var languageService = new LanguageService();
-            var allStates       = new List<BackupStateEntry>();
-            var cryptoSoft      = new CryptoSoftService(appDataDirectory);
+            var allStates = new List<BackupStateEntry>();
+            var cryptoSoft = new CryptoSoftService(appDataDirectory);
+            var coordinator = new ParallelCoordinator();
 
-            // Read business software list from user settings (empty = detection disabled).
             var businessList = string.IsNullOrWhiteSpace(settings.BusinessSoftware)
                 ? new List<string>()
                 : settings.BusinessSoftware
@@ -36,8 +36,20 @@ namespace EasySave.ViewModels
 
             var businessWatcher = new BusinessSoftwareWatcher(businessList);
 
-            var backupService   = new BackupService(logger, stateFilePath, allStates, settingsService, cryptoSoft, businessWatcher);
-            var backupViewModel = new BackupViewModel(configService, backupService, languageService, settingsService);
+            var backupService = new BackupService(
+                logger,
+                stateFilePath,
+                allStates,
+                settingsService,
+                cryptoSoft,
+                businessWatcher,
+                coordinator);
+
+            var backupViewModel = new BackupViewModel(
+                configService,
+                backupService,
+                languageService,
+                settingsService);
 
             foreach (var job in backupViewModel.Jobs)
                 allStates.Add(new BackupStateEntry { BackupName = job.Name, State = "Inactive" });

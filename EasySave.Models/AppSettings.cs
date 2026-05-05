@@ -16,5 +16,11 @@ namespace EasySave.Models
 
         /// <summary>UI language. Accepted values: "en" or "fr".</summary>
         public string Language { get; set; } = "en";
+
+        /// <summary>Semicolon-separated list of priority extensions (e.g. ".pdf;.docx").</summary>
+        public string PriorityExtensions { get; set; } = string.Empty;
+
+        /// <summary>Max file size in KB that can transfer simultaneously. 0 = no limit.</summary>
+        public long MaxParallelFileSizeKb { get; set; } = 0;
     }
 }
