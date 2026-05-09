@@ -1,0 +1,108 @@
+name: CI – Build & Tests
+
+on:
+  push:
+    branches: ["**"]          # run on every push to every branch
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build-and-test:
+    name: Build & Run Tests
+    runs-on: windows-latest   # WPF requires Windows
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup .NET 8 ───────────────────────────────────────────────────
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # ── 3. Restore NuGet packages ──────────────────────────────────────────
+      - name: Restore dependencies
+        run: dotnet restore EasySave.sln
+
+      # ── 4. Build entire solution ───────────────────────────────────────────
+      - name: Build solution (Release)
+        run: dotnet build EasySave.sln --configuration Release --no-restore
+
+      # ── 5. Run unit + integration tests ───────────────────────────────────
+      - name: Run tests
+        run: >
+          dotnet test EasySave.Tests/EasySave.Tests.csproj
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+
+      # ── 6. Upload test results artifact ───────────────────────────────────
+      - name: Upload test results
+        if: always()           # upload even if tests fail so we can see the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/*.trx"
+
+      # ── 7. Upload code coverage report ────────────────────────────────────
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: "**/coverage.cobertura.xml"
+
+  # ── Publish Console v1.1 (win-x64 self-contained) ─────────────────────────
+  publish-console:
+    name: Publish Console v1.1
+    runs-on: windows-latest
+    needs: build-and-test      # only publish if all tests pass
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish Console
+        run: >
+          dotnet publish EasySave.Views.Console/EasySave.Views.Console.csproj
+          --configuration Release
+          --output publish/console
+
+      - name: Upload Console artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasySave-Console
+          path: publish/console/
+
+  # ── Publish GUI v2.0 (win-x64 self-contained) ─────────────────────────────
+  publish-gui:
+    name: Publish GUI v2.0
+    runs-on: windows-latest
+    needs: build-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build CryptoSoft first (needed by GUI publish target)
+        run: dotnet build CryptoSoft/CryptoSoft.csproj --configuration Release
+
+      - name: Publish GUI
+        run: >
+          dotnet publish EasySave.Views.WPF/EasySave.Views.WPF.csproj
+          --configuration Release
+          --output publish/gui
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasySave-GUI
+          path: publish/gui/

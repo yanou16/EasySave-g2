@@ -1,61 +1,298 @@
 <Window x:Class="EasySave.Views.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="EasySave 2.0" Height="540" Width="860"
-        MinHeight="420" MinWidth="640">
+        Title="EasySave" Height="600" Width="980"
+        MinHeight="480" MinWidth="720"
+        Background="#F0F2F5">
 
-    <Grid Margin="12">
+    <Window.Resources>
+
+        <!-- ── Colour palette ──────────────────────────────────────────────── -->
+        <SolidColorBrush x:Key="NavyBrush"      Color="#1E3A5F"/>
+        <SolidColorBrush x:Key="AccentBrush"    Color="#2196F3"/>
+        <SolidColorBrush x:Key="DangerBrush"    Color="#E53935"/>
+        <SolidColorBrush x:Key="SuccessBrush"   Color="#43A047"/>
+        <SolidColorBrush x:Key="SurfaceBrush"   Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BorderBrush2"   Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="TextPrimBrush"  Color="#1A1A2E"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#6B7280"/>
+
+        <!-- ── Shared button template ───────────────────────────────────────── -->
+        <ControlTemplate x:Key="RoundBtnTemplate" TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="Bd" Property="Background" Value="#BDBDBD"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Accent (blue) button -->
+        <Style x:Key="BtnAccent" TargetType="Button">
+            <Setter Property="Background"  Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground"  Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"     Value="16,8"/>
+            <Setter Property="FontSize"    Value="13"/>
+            <Setter Property="FontWeight"  Value="SemiBold"/>
+            <Setter Property="Cursor"      Value="Hand"/>
+            <Setter Property="Template"    Value="{StaticResource RoundBtnTemplate}"/>
+        </Style>
+
+        <!-- Danger (red) button -->
+        <Style x:Key="BtnDanger" TargetType="Button" BasedOn="{StaticResource BtnAccent}">
+            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+        </Style>
+
+        <!-- Success (green) button -->
+        <Style x:Key="BtnSuccess" TargetType="Button" BasedOn="{StaticResource BtnAccent}">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+        </Style>
+
+        <!-- Ghost (outline) button -->
+        <Style x:Key="BtnGhost" TargetType="Button">
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="Foreground"       Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"      Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderThickness"  Value="1.5"/>
+            <Setter Property="Padding"          Value="16,7"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E3F2FD"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#BBDEFB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── DataGrid styles ──────────────────────────────────────────────── -->
+        <Style TargetType="DataGrid">
+            <Setter Property="Background"              Value="White"/>
+            <Setter Property="BorderThickness"         Value="0"/>
+            <Setter Property="GridLinesVisibility"     Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#F0F0F0"/>
+            <Setter Property="RowBackground"           Value="White"/>
+            <Setter Property="AlternatingRowBackground" Value="#FAFAFA"/>
+            <Setter Property="HeadersVisibility"       Value="Column"/>
+            <Setter Property="CanUserResizeRows"        Value="False"/>
+            <Setter Property="CanUserAddRows"           Value="False"/>
+            <Setter Property="SelectionMode"            Value="Single"/>
+            <Setter Property="FocusVisualStyle"         Value="{x:Null}"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background"      Value="#1E3A5F"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="Padding"         Value="14,10"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="BorderBrush"     Value="#2A4A6F"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F5F9FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding"         Value="14,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="64"/>   <!-- Header/navbar -->
+            <RowDefinition Height="56"/>   <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Job list -->
+            <RowDefinition Height="36"/>   <!-- Status bar -->
         </Grid.RowDefinitions>
 
-        <!-- Header : title + language switcher -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock x:Name="TxtTitle" Text="EasySave 2.0"
-                       FontSize="20" FontWeight="Bold"
-                       VerticalAlignment="Center"/>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                        HorizontalAlignment="Right" VerticalAlignment="Center">
-                <TextBlock x:Name="TxtLangLabel" Text="Language :"
-                           VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <ComboBox x:Name="CmbLanguage" Width="80"
-                          SelectionChanged="CmbLanguage_SelectionChanged">
-                    <ComboBoxItem Content="English" Tag="en"/>
-                    <ComboBoxItem Content="Français" Tag="fr"/>
-                </ComboBox>
+        <!-- ══════════════════════════════════════════════════════════════════
+             Row 0 — Header
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="#1E3A5F">
+            <DockPanel Margin="20,0" VerticalAlignment="Center">
+
+                <!-- Logo + app name -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="38" Height="38" CornerRadius="8"
+                            Background="#2196F3" Margin="0,0,12,0">
+                        <TextBlock Text="ES" Foreground="White" FontWeight="Bold"
+                                   FontSize="15" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="EasySave" Foreground="White"
+                                   FontSize="18" FontWeight="Bold" LineHeight="20"/>
+                        <TextBlock Text="v2.0 – ProSoft" Foreground="#90CAF9" FontSize="11"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Right side: job count + language -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            VerticalAlignment="Center" HorizontalAlignment="Right">
+
+                    <!-- Job count badge -->
+                    <Border x:Name="BadgeJobs" CornerRadius="12"
+                            Background="#2196F3" Padding="12,4" Margin="0,0,20,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="TxtJobCount" Text="0"
+                                       Foreground="White" FontWeight="Bold" FontSize="13"/>
+                            <TextBlock Text=" jobs" Foreground="#E3F2FD" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Language label + combo -->
+                    <TextBlock Text="Lang:" Foreground="#90CAF9"
+                               FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="CmbLanguage" Width="100"
+                              VerticalAlignment="Center"
+                              SelectionChanged="CmbLanguage_SelectionChanged">
+                        <ComboBoxItem Content="English" Tag="en"/>
+                        <ComboBoxItem Content="Français" Tag="fr"/>
+                    </ComboBox>
+                </StackPanel>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             Row 1 — Toolbar
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="White"
+                BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
+
+                <Button x:Name="BtnAdd"        Style="{StaticResource BtnAccent}"
+                        Margin="0,0,8,0"       Click="BtnAdd_Click"/>
+                <Button x:Name="BtnRemove"     Style="{StaticResource BtnDanger}"
+                        Margin="0,0,16,0"      Click="BtnRemove_Click"/>
+
+                <Separator Width="1" Background="#E0E0E0" Margin="0,8,16,8"/>
+
+                <Button x:Name="BtnExecute"    Style="{StaticResource BtnSuccess}"
+                        Margin="0,0,8,0"       Click="BtnExecute_Click"/>
+                <Button x:Name="BtnExecuteAll" Style="{StaticResource BtnSuccess}"
+                        Margin="0,0,16,0"      Click="BtnExecuteAll_Click"/>
+
+                <Separator Width="1" Background="#E0E0E0" Margin="0,8,16,8"/>
+
+                <Button x:Name="BtnSettings"   Style="{StaticResource BtnGhost}"
+                        Click="BtnSettings_Click"/>
+
             </StackPanel>
-        </DockPanel>
+        </Border>
 
-        <!-- Jobs list -->
-        <DataGrid Grid.Row="1"
-                  x:Name="JobsGrid"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  Margin="0,0,0,10">
-            <DataGrid.Columns>
-                <DataGridTextColumn x:Name="ColId"     Header="Id"     Binding="{Binding Id}"              Width="40"/>
-                <DataGridTextColumn x:Name="ColName"   Header="Name"   Binding="{Binding Name}"            Width="*"/>
-                <DataGridTextColumn x:Name="ColSource" Header="Source" Binding="{Binding SourceDirectory}" Width="2*"/>
-                <DataGridTextColumn x:Name="ColTarget" Header="Target" Binding="{Binding TargetDirectory}" Width="2*"/>
-                <DataGridTextColumn x:Name="ColType"   Header="Type"   Binding="{Binding Type}"            Width="110"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- ══════════════════════════════════════════════════════════════════
+             Row 2 — Job list (card)
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Margin="16,12,16,0"
+                CornerRadius="8" ClipToBounds="True"
+                BorderBrush="#E0E0E0" BorderThickness="1"
+                Background="White">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-        <!-- Status bar -->
-        <TextBlock Grid.Row="2" x:Name="StatusText"
-                   Text="Ready" Foreground="Gray" Margin="0,0,0,10"/>
+                <!-- DataGrid -->
+                <DataGrid Grid.Row="0"
+                          x:Name="JobsGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="ColId"
+                            Header="#"
+                            Binding="{Binding Id}"
+                            Width="44"/>
+                        <DataGridTextColumn x:Name="ColName"
+                            Header="Name"
+                            Binding="{Binding Name}"
+                            Width="*"/>
+                        <DataGridTextColumn x:Name="ColSource"
+                            Header="Source"
+                            Binding="{Binding SourceDirectory}"
+                            Width="2*"/>
+                        <DataGridTextColumn x:Name="ColTarget"
+                            Header="Target"
+                            Binding="{Binding TargetDirectory}"
+                            Width="2*"/>
+                        <DataGridTextColumn x:Name="ColType"
+                            Header="Type"
+                            Binding="{Binding Type}"
+                            Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
 
-        <!-- Action buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal">
-            <Button x:Name="BtnAdd"        Width="110" Margin="0,0,8,0" Click="BtnAdd_Click"/>
-            <Button x:Name="BtnRemove"     Width="110" Margin="0,0,8,0" Click="BtnRemove_Click"/>
-            <Button x:Name="BtnExecute"    Width="110" Margin="0,0,8,0" Click="BtnExecute_Click"/>
-            <Button x:Name="BtnExecuteAll" Width="110" Margin="0,0,8,0" Click="BtnExecuteAll_Click"/>
-            <Button x:Name="BtnSettings"   Width="110"                  Click="BtnSettings_Click"/>
-        </StackPanel>
+                <!-- Empty state message (hidden when jobs exist) -->
+                <StackPanel Grid.Row="0" x:Name="EmptyState"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Visibility="Visible">
+                    <TextBlock Text="📂" FontSize="40"
+                               HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBlock x:Name="TxtEmptyState"
+                               Text="No backup jobs yet. Click 'Add Job' to get started."
+                               Foreground="#9CA3AF" FontSize="14"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             Row 3 — Status bar
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3" Background="#F8F9FA"
+                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <DockPanel Margin="16,0" VerticalAlignment="Center">
+                <Ellipse x:Name="StatusDot" Width="8" Height="8"
+                         Fill="Gray" Margin="0,0,8,0"/>
+                <TextBlock x:Name="StatusText" Text="Ready"
+                           Foreground="#6B7280" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Right" Text="ProSoft © 2024"
+                           Foreground="#D1D5DB" FontSize="11"
+                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </DockPanel>
+        </Border>
+
     </Grid>
 </Window>
