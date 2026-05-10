@@ -11,13 +11,15 @@ namespace EasySave.ViewModels.Services
         private readonly string _path;
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-        public SettingsService()
+        /// <summary>Production constructor — stores settings in %AppData%\EasySave.</summary>
+        public SettingsService() : this(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasySave")) { }
+
+        /// <summary>Testable constructor — stores settings in the given directory.</summary>
+        public SettingsService(string directory)
         {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "EasySave");
-            Directory.CreateDirectory(dir);
-            _path = Path.Combine(dir, "config.json");
+            Directory.CreateDirectory(directory);
+            _path = Path.Combine(directory, "config.json");
         }
 
         public AppSettings Load()

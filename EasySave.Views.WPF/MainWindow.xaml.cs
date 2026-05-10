@@ -93,6 +93,15 @@ namespace EasySave.Views.WPF
         {
             JobsGrid.ItemsSource = null;
             JobsGrid.ItemsSource = _viewModel.Jobs;
+
+            // Update job count badge in header
+            int count = _viewModel.Jobs.Count;
+            TxtJobCount.Text = count.ToString();
+
+            // Show/hide empty state overlay
+            EmptyState.Visibility = count == 0
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Hidden;
         }
 
         private void SetStatus(string message, bool isError = false)
@@ -101,6 +110,11 @@ namespace EasySave.Views.WPF
             StatusText.Foreground = isError
                 ? System.Windows.Media.Brushes.Red
                 : System.Windows.Media.Brushes.Gray;
+
+            // Status dot: red for error, green for success, grey default
+            StatusDot.Fill = isError
+                ? System.Windows.Media.Brushes.Red
+                : System.Windows.Media.Brushes.Green;
         }
 
         // ── Button handlers ───────────────────────────────────────────────────
