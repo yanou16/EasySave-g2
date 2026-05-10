@@ -86,10 +86,8 @@ namespace EasySave.Views.Console.ConsoleUi
             {
                 System.Console.Clear();
                 ConsoleMenu.PrintHeader(_context.LanguageService, _context.AppDataDirectory);
-                ConsoleMenu.PrintJobs(_context.LanguageService, _context.BackupViewModel.Jobs);
-                ConsoleMenu.PrintMainMenu(_context.LanguageService);
+                int choice = ConsoleMenu.PrintMainMenu(_context.LanguageService);
 
-                int choice = ConsolePrompts.PromptMenuChoice(_context.LanguageService);
                 System.Console.WriteLine();
 
                 switch (choice)
@@ -234,5 +232,7 @@ namespace EasySave.Views.Console.ConsoleUi
             string culture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             return culture == "fr" ? "fr" : "en";
         }
+
+        
     }
 }
