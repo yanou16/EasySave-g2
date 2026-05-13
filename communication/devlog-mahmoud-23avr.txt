@@ -63,6 +63,7 @@ Work done:
 - Added pause, resume, and stop controls for one job or all jobs.
 - Added automatic pause and resume when business software starts or stops.
 - Exposed the new controls through the shared ViewModel for GUI and CLI use.
+- Added a console dashboard to control running backups without touching the GUI.
 - Added regression tests for business pause, stop while paused, and user pause behavior.
 
 Validation:
