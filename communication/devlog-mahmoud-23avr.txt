@@ -52,3 +52,19 @@ Files touched:
 Validation:
 - Build passed.
 - Small Windows publish prepared.
+
+13 May 2026
+
+Task goal:
+Prepare Livrable 3 runtime controls.
+
+Work done:
+- Added shared status and progress events for live job monitoring.
+- Added pause, resume, and stop controls for one job or all jobs.
+- Added automatic pause and resume when business software starts or stops.
+- Exposed the new controls through the shared ViewModel for GUI and CLI use.
+- Added regression tests for business pause, stop while paused, and user pause behavior.
+
+Validation:
+- Build passed.
+- Unit tests passed.
