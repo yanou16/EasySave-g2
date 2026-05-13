@@ -98,10 +98,6 @@ namespace EasySave.ViewModels
             if (string.IsNullOrWhiteSpace(source)) return (false, _language.Get("EmptySource"));
             if (string.IsNullOrWhiteSpace(target)) return (false, _language.Get("EmptyTarget"));
 
-            // Invalid path check
-            if (!Directory.Exists(source))
-                return (false, _language.Get("InvalidSourcePath"));
-
             // Duplicate path check
             if (source.TrimEnd('\\', '/').Equals(
                 target.TrimEnd('\\', '/'),
