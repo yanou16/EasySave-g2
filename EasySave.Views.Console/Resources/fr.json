@@ -28,6 +28,8 @@
   "InvalidLogFormat": "Format de log invalide.",
   "PressEnterToContinue": "Appuyez sur Entrée pour continuer.",
   "ExecutionCompleted": "Sauvegarde terminée avec succès.",
+  "ExecutionDashboardTitle": "Exécution des sauvegardes",
+  "ExecutionDashboardHelp": "Haut/Bas sélectionner | P pause | R reprendre | S arrêter | A pause tout | T reprendre tout | X arrêter tout",
   "ExecutionFailed": "Échec de la sauvegarde",
   "NoCliSelection": "Aucune sélection de travail fournie.",
   "CliExecutedPrefix": "Sauvegarde exécutée :",

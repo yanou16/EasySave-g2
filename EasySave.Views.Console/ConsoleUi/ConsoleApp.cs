@@ -53,24 +53,23 @@ namespace EasySave.Views.Console.ConsoleUi
                 }
             }
 
+            try
+            {
+                if (indexes.Count == 1)
+                    _context.BackupViewModel.ExecuteJob(indexes[0]);
+                else
+                    RunSelectedJobs(indexes).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"{_context.LanguageService.Get("ExecutionFailed")}: {ex.Message}");
+                return 1;
+            }
+
             foreach (int index in indexes)
             {
-                try
-                {
-                    _context.BackupViewModel.ExecuteJob(index);
-                    System.Console.WriteLine(
-                        $"{_context.LanguageService.Get("CliExecutedPrefix")} {_context.BackupViewModel.Jobs[index].Name}");
-                }
-                catch (BusinessSoftwareDetectedException ex)
-                {
-                    System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
-                    return 1;
-                }
-                catch (Exception ex)
-                {
-                    System.Console.WriteLine($"{_context.LanguageService.Get("ExecutionFailed")}: {ex.Message}");
-                    return 1;
-                }
+                System.Console.WriteLine(
+                    $"{_context.LanguageService.Get("CliExecutedPrefix")} {_context.BackupViewModel.Jobs[index].Name}");
             }
 
             return 0;
@@ -152,12 +151,8 @@ namespace EasySave.Views.Console.ConsoleUi
             int index = ConsolePrompts.PromptJobNumber(_context.LanguageService, _context.BackupViewModel.Jobs.Count);
             try
             {
-                _context.BackupViewModel.ExecuteJob(index);
+                RunExecutionDashboard(new[] { index });
                 System.Console.WriteLine(_context.LanguageService.Get("ExecutionCompleted"));
-            }
-            catch (BusinessSoftwareDetectedException ex)
-            {
-                System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
             }
             catch (Exception ex)
             {
@@ -175,12 +170,8 @@ namespace EasySave.Views.Console.ConsoleUi
 
             try
             {
-                _context.BackupViewModel.ExecuteAllJobs();
+                RunExecutionDashboard(Enumerable.Range(0, _context.BackupViewModel.Jobs.Count).ToArray());
                 System.Console.WriteLine(_context.LanguageService.Get("ExecutionCompleted"));
-            }
-            catch (BusinessSoftwareDetectedException ex)
-            {
-                System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
             }
             catch (Exception ex)
             {
@@ -200,6 +191,139 @@ namespace EasySave.Views.Console.ConsoleUi
             string extensions = ConsolePrompts.Prompt(_context.LanguageService, "CryptoExtensionsPrompt");
             var cryptoResult = _context.BackupViewModel.ChangeCryptoExtensions(extensions);
             System.Console.WriteLine(cryptoResult.Message);
+        }
+
+        private void RunExecutionDashboard(IReadOnlyList<int> indexes)
+        {
+            RunExecutionDashboardAsync(indexes).GetAwaiter().GetResult();
+        }
+
+        private async Task RunExecutionDashboardAsync(IReadOnlyList<int> indexes)
+        {
+            int selected = 0;
+            var snapshots = indexes.ToDictionary(
+                index => _context.BackupViewModel.Jobs[index].Id,
+                index => new JobSnapshot(
+                    _context.BackupViewModel.Jobs[index].Name,
+                    0,
+                    _context.BackupViewModel.GetJobStatus(index)));
+
+            void OnProgress(object? sender, BackupProgressChangedEventArgs e)
+            {
+                if (snapshots.TryGetValue(e.JobId, out var snapshot))
+                    snapshots[e.JobId] = snapshot with { Progress = e.Progress, Status = e.Status };
+            }
+
+            void OnStatus(object? sender, BackupStatusChangedEventArgs e)
+            {
+                if (snapshots.TryGetValue(e.JobId, out var snapshot))
+                    snapshots[e.JobId] = snapshot with { Status = e.Status };
+            }
+
+            _context.BackupViewModel.ProgressChanged += OnProgress;
+            _context.BackupViewModel.StatusChanged += OnStatus;
+
+            try
+            {
+                Task runTask = RunSelectedJobs(indexes);
+
+                while (!runTask.IsCompleted)
+                {
+                    DrawExecutionDashboard(indexes, snapshots, selected);
+                    HandleDashboardInput(indexes, ref selected);
+                    await Task.Delay(200);
+                }
+
+                await runTask;
+                DrawExecutionDashboard(indexes, snapshots, selected);
+            }
+            finally
+            {
+                _context.BackupViewModel.ProgressChanged -= OnProgress;
+                _context.BackupViewModel.StatusChanged -= OnStatus;
+                System.Console.CursorVisible = true;
+            }
+        }
+
+        private Task RunSelectedJobs(IReadOnlyList<int> indexes)
+        {
+            var tasks = indexes.Select(_context.BackupViewModel.StartJob).ToArray();
+            return Task.WhenAll(tasks);
+        }
+
+        private void DrawExecutionDashboard(
+            IReadOnlyList<int> indexes,
+            Dictionary<int, JobSnapshot> snapshots,
+            int selected)
+        {
+            System.Console.Clear();
+            ConsoleMenu.PrintHeader(_context.LanguageService, _context.AppDataDirectory);
+
+            System.Console.ForegroundColor = ConsoleColor.DarkCyan;
+            System.Console.WriteLine($"  {_context.LanguageService.Get("ExecutionDashboardTitle")}");
+            System.Console.ResetColor();
+            System.Console.WriteLine();
+
+            for (int i = 0; i < indexes.Count; i++)
+            {
+                BackupJob job = _context.BackupViewModel.Jobs[indexes[i]];
+                JobSnapshot snapshot = snapshots[job.Id];
+                string marker = i == selected ? ">" : " ";
+                string progressBar = BuildProgressBar(snapshot.Progress, 24);
+
+                System.Console.ForegroundColor = i == selected ? ConsoleColor.Cyan : ConsoleColor.White;
+                System.Console.Write($"  {marker} [{job.Id}] {snapshot.Name,-20}");
+                System.Console.ResetColor();
+                System.Console.Write($" {snapshot.Status,-8} {progressBar} {snapshot.Progress,6:0.0}%");
+                System.Console.WriteLine();
+            }
+
+            System.Console.WriteLine();
+            System.Console.ForegroundColor = ConsoleColor.DarkGray;
+            System.Console.WriteLine($"  {_context.LanguageService.Get("ExecutionDashboardHelp")}");
+            System.Console.ResetColor();
+            System.Console.CursorVisible = false;
+        }
+
+        private void HandleDashboardInput(IReadOnlyList<int> indexes, ref int selected)
+        {
+            while (System.Console.KeyAvailable)
+            {
+                var key = System.Console.ReadKey(intercept: true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        selected = (selected - 1 + indexes.Count) % indexes.Count;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selected = (selected + 1) % indexes.Count;
+                        break;
+                    case ConsoleKey.P:
+                        _context.BackupViewModel.PauseJob(indexes[selected]);
+                        break;
+                    case ConsoleKey.R:
+                        _context.BackupViewModel.ResumeJob(indexes[selected]);
+                        break;
+                    case ConsoleKey.S:
+                        _context.BackupViewModel.StopJob(indexes[selected]);
+                        break;
+                    case ConsoleKey.A:
+                        _context.BackupViewModel.PauseAll();
+                        break;
+                    case ConsoleKey.T:
+                        _context.BackupViewModel.ResumeAll();
+                        break;
+                    case ConsoleKey.X:
+                        _context.BackupViewModel.StopAll();
+                        break;
+                }
+            }
+        }
+
+        private static string BuildProgressBar(double progress, int width)
+        {
+            int complete = Math.Clamp((int)Math.Round(progress / 100 * width), 0, width);
+            return $"[{new string('#', complete)}{new string('-', width - complete)}]";
         }
 
         // ── Language loading ─────────────────────────────────────────────────
@@ -234,5 +358,6 @@ namespace EasySave.Views.Console.ConsoleUi
         }
 
         
+        private sealed record JobSnapshot(string Name, double Progress, BackupRuntimeStatus Status);
     }
 }

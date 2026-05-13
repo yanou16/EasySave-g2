@@ -28,6 +28,8 @@
   "InvalidLogFormat": "Invalid log format.",
   "PressEnterToContinue": "Press Enter to continue.",
   "ExecutionCompleted": "Backup execution completed.",
+  "ExecutionDashboardTitle": "Backup execution",
+  "ExecutionDashboardHelp": "Up/Down select | P pause | R resume | S stop | A pause all | T resume all | X stop all",
   "ExecutionFailed": "Backup execution failed",
   "NoCliSelection": "No backup selection was provided.",
   "CliExecutedPrefix": "Executed backup:",
