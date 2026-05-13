@@ -18,6 +18,18 @@ namespace EasySave.ViewModels
         /// <summary>Jobs exposed to the View (read-only).</summary>
         public IReadOnlyList<BackupJob> Jobs => _jobs.AsReadOnly();
 
+        public event EventHandler<BackupProgressChangedEventArgs>? ProgressChanged
+        {
+            add => _backupService.ProgressChanged += value;
+            remove => _backupService.ProgressChanged -= value;
+        }
+
+        public event EventHandler<BackupStatusChangedEventArgs>? StatusChanged
+        {
+            add => _backupService.StatusChanged += value;
+            remove => _backupService.StatusChanged -= value;
+        }
+
         public BackupViewModel(
             ConfigService   configService,
             BackupService   backupService,
@@ -45,6 +57,7 @@ namespace EasySave.ViewModels
 
             _settingsService.Save(settings);
             ApplyLogFormat();
+            _backupService.UpdateBusinessSoftware(settings.BusinessSoftware);
             return (true, _language.Get("SettingsSaved"));
         }
 
@@ -125,11 +138,58 @@ namespace EasySave.ViewModels
             _backupService.Execute(_jobs[index]);
         }
 
-        /// <summary>Executes all configured jobs sequentially.</summary>
+        public Task StartJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            return _backupService.Start(_jobs[index]);
+        }
+
+        /// <summary>Executes all configured jobs in parallel for v3.0.</summary>
         public void ExecuteAllJobs()
         {
-            foreach (BackupJob job in _jobs)
-                _backupService.Execute(job);
+            _backupService.ExecuteAll(_jobs);
+        }
+
+        public Task StartAllJobs() => _backupService.StartAll(_jobs);
+
+        public void PauseJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            _backupService.PauseJob(_jobs[index].Id);
+        }
+
+        public void ResumeJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            _backupService.ResumeJob(_jobs[index].Id);
+        }
+
+        public void StopJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            _backupService.StopJob(_jobs[index].Id);
+        }
+
+        public void PauseAll() => _backupService.PauseAll();
+
+        public void ResumeAll() => _backupService.ResumeAll();
+
+        public void StopAll() => _backupService.StopAll();
+
+        public BackupRuntimeStatus GetJobStatus(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            return _backupService.GetStatus(_jobs[index].Id);
         }
     }
 }
