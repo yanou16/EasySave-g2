@@ -94,20 +94,30 @@ namespace EasySave.ViewModels
         /// <summary>Adds a new backup job (unlimited in v2.0).</summary>
         public (bool Success, string Message) AddJob(string name, string source, string target, BackupType type)
         {
-            if (string.IsNullOrWhiteSpace(name))   return (false, _language.Get("EmptyName"));
-            if (string.IsNullOrWhiteSpace(source))  return (false, _language.Get("EmptySource"));
-            if (string.IsNullOrWhiteSpace(target))  return (false, _language.Get("EmptyTarget"));
+            if (string.IsNullOrWhiteSpace(name)) return (false, _language.Get("EmptyName"));
+            if (string.IsNullOrWhiteSpace(source)) return (false, _language.Get("EmptySource"));
+            if (string.IsNullOrWhiteSpace(target)) return (false, _language.Get("EmptyTarget"));
+
+            // Invalid path check
+            if (!Directory.Exists(source))
+                return (false, _language.Get("InvalidSourcePath"));
+
+            // Duplicate path check
+            if (source.TrimEnd('\\', '/').Equals(
+                target.TrimEnd('\\', '/'),
+                StringComparison.OrdinalIgnoreCase))
+                return (false, _language.Get("DuplicatePath"));
 
             if (_jobs.Any(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return (false, _language.Get("JobNameExists"));
 
             _jobs.Add(new BackupJob
             {
-                Id              = _jobs.Count + 1,
-                Name            = name,
+                Id = _jobs.Count + 1,
+                Name = name,
                 SourceDirectory = source,
                 TargetDirectory = target,
-                Type            = type
+                Type = type
             });
 
             _configService.SaveJobs(_jobs);

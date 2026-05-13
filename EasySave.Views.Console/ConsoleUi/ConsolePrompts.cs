@@ -75,17 +75,15 @@ namespace EasySave.Views.Console.ConsoleUi
             }
         }
 
-        public static int PromptJobNumber(LanguageService language, int jobCount)
+        public static int PromptJobNumber(LanguageService language, IReadOnlyList<BackupJob> jobs)
         {
-            string[] options = Enumerable.Range(1, jobCount)
-                                         .Select(i => $"Job {i}")
-                                         .ToArray();
+            string[] options = jobs.Select(j => $"[{j.Id}] {j.Name} — {j.Type} | {j.SourceDirectory}").ToArray();
 
             System.Console.ForegroundColor = ColorPrompt;
             System.Console.WriteLine($"  {language.Get("PromptJobNumber")}");
             System.Console.ResetColor();
 
-            return PromptArrowSelect(options); // returns 0-based index
+            return PromptArrowSelect(options); 
         }
 
         public static BackupType PromptBackupType(LanguageService language)
@@ -137,6 +135,71 @@ namespace EasySave.Views.Console.ConsoleUi
             System.Console.ForegroundColor = ColorSuccess;
             System.Console.WriteLine($"  ✔ {message}");
             System.Console.ResetColor();
+        }
+
+        /// <summary>
+        /// Arrow-key multi-selector. Space to toggle, Enter to confirm. Returns list of selected indexes (0-based).
+        /// </summary>
+        public static List<int> PromptMultiJobSelect(LanguageService language, IReadOnlyList<BackupJob> jobs)
+        {
+            string[] options = jobs.Select(j => $"[{j.Id}] {j.Name} — {j.Type} | {j.SourceDirectory}").ToArray();
+            bool[] selected = new bool[options.Length];
+            int cursor = 0;
+
+            System.Console.ForegroundColor = ColorPrompt;
+            System.Console.WriteLine($"  {language.Get("PromptMultiJob")}");
+            System.Console.ResetColor();
+
+            int top = System.Console.CursorTop;
+            System.Console.CursorVisible = false;
+
+            while (true)
+            {
+                System.Console.SetCursorPosition(0, top);
+                for (int i = 0; i < options.Length; i++)
+                {
+                    string checkbox = selected[i] ? "✔" : "○";
+                    if (i == cursor)
+                    {
+                        System.Console.ForegroundColor = ConsoleColor.Black;
+                        System.Console.BackgroundColor = ConsoleColor.Yellow;
+                        System.Console.WriteLine($"  {checkbox} › {options[i].PadRight(40)}");
+                    }
+                    else
+                    {
+                        System.Console.ForegroundColor = selected[i] ? ConsoleColor.Yellow : ConsoleColor.White;
+                        System.Console.BackgroundColor = ConsoleColor.Black;
+                        System.Console.WriteLine($"  {checkbox}   {options[i].PadRight(40)}");
+                    }
+                    System.Console.ResetColor();
+                }
+
+                System.Console.ForegroundColor = ColorSubtle;
+                System.Console.WriteLine("\n  ↑↓ Navigate   Space = Toggle   Enter = Confirm");
+                System.Console.ResetColor();
+
+                var key = System.Console.ReadKey(intercept: true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        cursor = (cursor - 1 + options.Length) % options.Length;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        cursor = (cursor + 1) % options.Length;
+                        break;
+                    case ConsoleKey.Spacebar:
+                        selected[cursor] = !selected[cursor];
+                        break;
+                    case ConsoleKey.Enter:
+                        System.Console.CursorVisible = true;
+                        System.Console.WriteLine();
+                        var result = new List<int>();
+                        for (int i = 0; i < selected.Length; i++)
+                            if (selected[i]) result.Add(i);
+                        if (result.Count == 0) result.Add(cursor);
+                        return result;
+                }
+            }
         }
     }
 }

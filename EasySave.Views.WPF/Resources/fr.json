@@ -24,5 +24,7 @@
   "ExecutionCompleted": "Sauvegarde terminée avec succès.",
   "ExecutionFailed": "Échec de la sauvegarde",
   "PromptBackupType": "Choisissez le type (1=Complète, 2=Différentielle) :",
-  "InvalidBackupType": "Type de sauvegarde invalide."
+  "InvalidBackupType": "Type de sauvegarde invalide.",
+  "InvalidSourcePath": "Source directory does not exist.",
+  "DuplicatePath": "Source and target directories cannot be the same."
 }

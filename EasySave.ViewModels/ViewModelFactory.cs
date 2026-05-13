@@ -51,9 +51,6 @@ namespace EasySave.ViewModels
                 languageService,
                 settingsService);
 
-            foreach (var job in backupViewModel.Jobs)
-                allStates.Add(new BackupStateEntry { BackupName = job.Name, State = "Inactive" });
-
             return (backupViewModel, languageService);
         }
     }

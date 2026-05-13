@@ -24,5 +24,7 @@
   "ExecutionCompleted": "Backup completed successfully.",
   "ExecutionFailed": "Backup failed",
   "PromptBackupType": "Choose type (1=Full, 2=Differential):",
-  "InvalidBackupType": "Invalid backup type."
+  "InvalidBackupType": "Invalid backup type.",
+  "InvalidSourcePath": "Source directory does not exist.",
+  "DuplicatePath": "Source and target directories cannot be the same."
 }

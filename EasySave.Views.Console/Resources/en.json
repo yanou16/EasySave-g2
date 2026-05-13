@@ -45,5 +45,6 @@
   "LogFormatPrompt": "Choose a format (JSON/XML):",
   "CurrentCryptoExtensions": "Current CryptoSoft extensions",
   "CryptoExtensionsPrompt": "Extensions to encrypt with CryptoSoft (.txt;.docx, empty to disable):",
-  "SettingsSaved": "Settings saved."
+  "SettingsSaved": "Settings saved.",
+  "PromptMultiJob": "Select jobs to execute (Space = toggle, Enter = confirm):"
 }

@@ -135,8 +135,7 @@ namespace EasySave.Views.Console.ConsoleUi
                 return;
             }
 
-            int index  = ConsolePrompts.PromptJobNumber(_context.LanguageService, _context.BackupViewModel.Jobs.Count);
-            var result = _context.BackupViewModel.RemoveJob(index);
+            int index = ConsolePrompts.PromptJobNumber(_context.LanguageService, _context.BackupViewModel.Jobs); var result = _context.BackupViewModel.RemoveJob(index);
             System.Console.WriteLine(result.Message);
         }
 
@@ -148,11 +147,20 @@ namespace EasySave.Views.Console.ConsoleUi
                 return;
             }
 
-            int index = ConsolePrompts.PromptJobNumber(_context.LanguageService, _context.BackupViewModel.Jobs.Count);
+            var indexes = ConsolePrompts.PromptMultiJobSelect(
+                _context.LanguageService,
+                _context.BackupViewModel.Jobs);
+
             try
             {
-                RunExecutionDashboard(new[] { index });
+                foreach (int index in indexes)
+                    _context.BackupViewModel.ExecuteJob(index);
+
                 System.Console.WriteLine(_context.LanguageService.Get("ExecutionCompleted"));
+            }
+            catch (BusinessSoftwareDetectedException ex)
+            {
+                System.Console.WriteLine($"Backup stopped: business software detected ({ex.SoftwareName})");
             }
             catch (Exception ex)
             {
