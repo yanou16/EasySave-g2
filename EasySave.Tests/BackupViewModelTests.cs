@@ -2,6 +2,7 @@ using EasyLog.Services;
 using EasySave.Models;
 using EasySave.ViewModels;
 using EasySave.ViewModels.Services;
+using System.Diagnostics;
 using Xunit;
 
 namespace EasySave.Tests
@@ -274,6 +275,84 @@ namespace EasySave.Tests
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => _vm.ExecuteJob(0));
             Assert.Throws<ArgumentOutOfRangeException>(() => _vm.ExecuteJob(-1));
+        }
+
+        [Fact]
+        public async Task StartJob_BusinessSoftwareRunning_PausesThenAutoResumes()
+        {
+            string source = Path.Combine(_tempDir, "source");
+            string target = Path.Combine(_tempDir, "target");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "a.txt"), "data");
+
+            _vm.AddJob("Controlled", source, target, BackupType.Full);
+            var processName = Process.GetCurrentProcess().ProcessName;
+            _vm.SaveSettings(new AppSettings { BusinessSoftware = processName });
+
+            Task run = _vm.StartJob(0);
+            await WaitUntilAsync(() => _vm.GetJobStatus(0) == BackupRuntimeStatus.Paused);
+
+            _vm.SaveSettings(new AppSettings { BusinessSoftware = string.Empty });
+            await run.WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(BackupRuntimeStatus.Finished, _vm.GetJobStatus(0));
+            Assert.True(File.Exists(Path.Combine(target, "a.txt")));
+        }
+
+        [Fact]
+        public async Task StopJob_CancelsPausedJob()
+        {
+            string source = Path.Combine(_tempDir, "source_stop");
+            string target = Path.Combine(_tempDir, "target_stop");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "a.txt"), "data");
+
+            _vm.AddJob("StopMe", source, target, BackupType.Full);
+            var processName = Process.GetCurrentProcess().ProcessName;
+            _vm.SaveSettings(new AppSettings { BusinessSoftware = processName });
+
+            Task run = _vm.StartJob(0);
+            await WaitUntilAsync(() => _vm.GetJobStatus(0) == BackupRuntimeStatus.Paused);
+
+            _vm.StopJob(0);
+            await run.WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(BackupRuntimeStatus.Stopped, _vm.GetJobStatus(0));
+        }
+
+        [Fact]
+        public async Task UserPauseSurvivesBusinessResume_UntilUserResumes()
+        {
+            string source = Path.Combine(_tempDir, "source_user_pause");
+            string target = Path.Combine(_tempDir, "target_user_pause");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "a.txt"), "data");
+
+            _vm.AddJob("PauseMe", source, target, BackupType.Full);
+            var processName = Process.GetCurrentProcess().ProcessName;
+            _vm.SaveSettings(new AppSettings { BusinessSoftware = processName });
+
+            Task run = _vm.StartJob(0);
+            await WaitUntilAsync(() => _vm.GetJobStatus(0) == BackupRuntimeStatus.Paused);
+
+            _vm.PauseJob(0);
+            _vm.SaveSettings(new AppSettings { BusinessSoftware = string.Empty });
+            await Task.Delay(250);
+            Assert.Equal(BackupRuntimeStatus.Paused, _vm.GetJobStatus(0));
+
+            _vm.ResumeJob(0);
+            await run.WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(BackupRuntimeStatus.Finished, _vm.GetJobStatus(0));
+        }
+
+        private static async Task WaitUntilAsync(Func<bool> condition)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (!condition())
+            {
+                await Task.Delay(50, cts.Token);
+            }
         }
     }
 }
