@@ -1,0 +1,6 @@
+@EasySave.DockerLogServer_HostAddress = http://localhost:5224
+
+GET {{EasySave.DockerLogServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
