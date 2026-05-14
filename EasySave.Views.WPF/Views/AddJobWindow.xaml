@@ -1,8 +1,11 @@
 <Window x:Class="EasySave.Views.WPF.AddJobWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Add Backup Job" Height="380" Width="500"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Title="Add Backup Job"
+        Height="520" Width="560"
+        MinHeight="420" MinWidth="460"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
         Background="#F0F2F5">
 
     <Window.Resources>
@@ -13,18 +16,18 @@
             <Setter Property="Margin"     Value="0,0,0,5"/>
         </Style>
         <Style TargetType="TextBox">
-            <Setter Property="Height"          Value="36"/>
-            <Setter Property="Padding"         Value="10,0"/>
+            <Setter Property="Height"                   Value="38"/>
+            <Setter Property="Padding"                  Value="10,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="BorderBrush"     Value="#D1D5DB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background"      Value="White"/>
+            <Setter Property="FontSize"                 Value="13"/>
+            <Setter Property="BorderBrush"              Value="#D1D5DB"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Background"               Value="White"/>
         </Style>
-        <!-- Browse "..." button -->
+        <!-- Browse "…" button -->
         <Style x:Key="BrowseBtn" TargetType="Button">
-            <Setter Property="Width"           Value="36"/>
-            <Setter Property="Height"          Value="36"/>
+            <Setter Property="Width"           Value="38"/>
+            <Setter Property="Height"          Value="38"/>
             <Setter Property="Background"      Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize"        Value="14"/>
@@ -45,125 +48,147 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="CancelBtn" TargetType="Button">
+            <Setter Property="Width"           Value="100"/>
+            <Setter Property="Height"          Value="38"/>
+            <Setter Property="Background"      Value="#E5E7EB"/>
+            <Setter Property="Foreground"      Value="#374151"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="16,8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#D1D5DB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Width"           Value="120"/>
+            <Setter Property="Height"          Value="38"/>
+            <Setter Property="Background"      Value="#2196F3"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="16,8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1976D2"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1565C0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
+    <!-- ROOT 3-row layout: header / scrollable form / footer (always visible) -->
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="52"/>   <!-- Header -->
-            <RowDefinition Height="*"/>    <!-- Form -->
-            <RowDefinition Height="64"/>   <!-- Footer -->
+            <RowDefinition Height="52"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="72"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
         <Border Grid.Row="0" Background="#1E3A5F">
-            <TextBlock Text="Add Backup Job" Foreground="White"
-                       FontSize="16" FontWeight="Bold"
+            <TextBlock x:Name="TxtHeader" Text="Add Backup Job"
+                       Foreground="White" FontSize="16" FontWeight="Bold"
                        VerticalAlignment="Center" Margin="20,0"/>
         </Border>
 
-        <!-- Form -->
-        <Border Grid.Row="1" Background="White"
-                Margin="16,12,16,0" CornerRadius="8"
-                BorderBrush="#E0E0E0" BorderThickness="1"
-                Padding="16,14">
-            <StackPanel>
+        <!-- Scrollable form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Border Background="White"
+                    Margin="16,12,16,12" CornerRadius="8"
+                    BorderBrush="#E0E0E0" BorderThickness="1"
+                    Padding="18,16">
+                <StackPanel>
 
-                <!-- Name -->
-                <TextBlock Style="{StaticResource FieldLabel}" Text="JOB NAME"/>
-                <TextBox x:Name="TxtName" Margin="0,0,0,14"/>
+                    <!-- Name -->
+                    <TextBlock x:Name="LblName" Style="{StaticResource FieldLabel}" Text="JOB NAME"/>
+                    <TextBox x:Name="TxtName" Margin="0,0,0,14"/>
 
-                <!-- Source -->
-                <TextBlock Style="{StaticResource FieldLabel}" Text="SOURCE FOLDER"/>
-                <Grid Margin="0,0,0,14">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtSource"/>
-                    <Button  Grid.Column="2" Style="{StaticResource BrowseBtn}"
-                             Content="…" Click="BtnBrowseSource_Click"/>
-                </Grid>
+                    <!-- Source -->
+                    <TextBlock x:Name="LblSource" Style="{StaticResource FieldLabel}" Text="SOURCE FOLDER"/>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="TxtSource"/>
+                        <Button  Grid.Column="2" Style="{StaticResource BrowseBtn}"
+                                 Content="…" Click="BtnBrowseSource_Click"
+                                 ToolTip="Browse for source folder"/>
+                    </Grid>
 
-                <!-- Target -->
-                <TextBlock Style="{StaticResource FieldLabel}" Text="TARGET FOLDER"/>
-                <Grid Margin="0,0,0,14">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtTarget"/>
-                    <Button  Grid.Column="2" Style="{StaticResource BrowseBtn}"
-                             Content="…" Click="BtnBrowseTarget_Click"/>
-                </Grid>
+                    <!-- Target -->
+                    <TextBlock x:Name="LblTarget" Style="{StaticResource FieldLabel}" Text="TARGET FOLDER"/>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="TxtTarget"/>
+                        <Button  Grid.Column="2" Style="{StaticResource BrowseBtn}"
+                                 Content="…" Click="BtnBrowseTarget_Click"
+                                 ToolTip="Browse for target folder"/>
+                    </Grid>
 
-                <!-- Type -->
-                <TextBlock Style="{StaticResource FieldLabel}" Text="BACKUP TYPE"/>
-                <ComboBox x:Name="CmbType" Height="36" FontSize="13"
-                          SelectedIndex="0">
-                    <ComboBoxItem Content="Full – copy all files"/>
-                    <ComboBoxItem Content="Differential – copy only changed files"/>
-                </ComboBox>
+                    <!-- Type -->
+                    <TextBlock x:Name="LblType" Style="{StaticResource FieldLabel}" Text="BACKUP TYPE"/>
+                    <ComboBox x:Name="CmbType" Height="38" FontSize="13"
+                              SelectedIndex="0">
+                        <ComboBoxItem x:Name="CmbItemFull"         Content="Full – copy all files"/>
+                        <ComboBoxItem x:Name="CmbItemDifferential" Content="Differential – copy only changed files"/>
+                    </ComboBox>
 
-                <!-- Error message -->
-                <TextBlock x:Name="TxtError" Foreground="#E53935"
-                           FontSize="12" Margin="0,10,0,0"
-                           TextWrapping="Wrap"/>
+                    <!-- Inline error -->
+                    <TextBlock x:Name="TxtError" Foreground="#E53935"
+                               FontSize="12" Margin="0,12,0,0"
+                               TextWrapping="Wrap"/>
 
-            </StackPanel>
-        </Border>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
 
-        <!-- Footer buttons -->
+        <!-- Footer (always visible — pinned to bottom) -->
         <Border Grid.Row="2" Background="White"
-                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"
-                Margin="0,12,0,0">
+                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         Margin="0,0,16,0">
-                <Button x:Name="BtnCancel" Content="Cancel"
-                        Width="90" Height="36" Margin="0,0,10,0"
-                        Background="#E5E7EB" BorderThickness="0"
-                        FontSize="13" Cursor="Hand"
-                        Click="BtnCancel_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                    CornerRadius="6" Padding="16,8">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#D1D5DB"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                <Button x:Name="BtnAdd" Content="Add Job"
-                        Width="100" Height="36"
-                        Background="#2196F3" Foreground="White"
-                        BorderThickness="0" FontSize="13"
-                        FontWeight="SemiBold" Cursor="Hand"
-                        Click="BtnAdd_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                    CornerRadius="6" Padding="16,8">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#1976D2"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#1565C0"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <Button x:Name="BtnCancel" Style="{StaticResource CancelBtn}"
+                        Content="Cancel" Margin="0,0,10,0"
+                        Click="BtnCancel_Click"/>
+                <Button x:Name="BtnAdd"    Style="{StaticResource PrimaryBtn}"
+                        Content="Add Job"
+                        IsDefault="True"
+                        Click="BtnAdd_Click"/>
             </StackPanel>
         </Border>
 

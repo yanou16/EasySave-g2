@@ -120,6 +120,61 @@ namespace EasySave.ViewModels
             return (true, _language.Get("JobAdded"));
         }
 
+        /// <summary>Updates an existing job's metadata by 0-based index.</summary>
+        public (bool Success, string Message) UpdateJob(int index, string name, string source, string target, BackupType type)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                return (false, _language.Get("InvalidJobIndex"));
+
+            if (string.IsNullOrWhiteSpace(name))   return (false, _language.Get("EmptyName"));
+            if (string.IsNullOrWhiteSpace(source)) return (false, _language.Get("EmptySource"));
+            if (string.IsNullOrWhiteSpace(target)) return (false, _language.Get("EmptyTarget"));
+
+            if (source.TrimEnd('\\', '/').Equals(target.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+                return (false, _language.Get("DuplicatePath"));
+
+            // Allow same name when editing self, but block if another job already uses that name.
+            for (int i = 0; i < _jobs.Count; i++)
+                if (i != index && _jobs[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return (false, _language.Get("JobNameExists"));
+
+            _jobs[index].Name            = name;
+            _jobs[index].SourceDirectory = source;
+            _jobs[index].TargetDirectory = target;
+            _jobs[index].Type            = type;
+
+            _configService.SaveJobs(_jobs);
+            return (true, _language.Get("JobUpdated"));
+        }
+
+        /// <summary>Clones an existing job (new id, " (copy)" suffix on name).</summary>
+        public (bool Success, string Message) DuplicateJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count)
+                return (false, _language.Get("InvalidJobIndex"));
+
+            var src = _jobs[index];
+
+            // Find a unique copy name: "Foo (copy)", "Foo (copy 2)", "Foo (copy 3)"…
+            string baseName = $"{src.Name} (copy)";
+            string candidate = baseName;
+            int n = 2;
+            while (_jobs.Any(j => j.Name.Equals(candidate, StringComparison.OrdinalIgnoreCase)))
+                candidate = $"{baseName} {n++}";
+
+            _jobs.Add(new BackupJob
+            {
+                Id              = _jobs.Count + 1,
+                Name            = candidate,
+                SourceDirectory = src.SourceDirectory,
+                TargetDirectory = src.TargetDirectory,
+                Type            = src.Type
+            });
+
+            _configService.SaveJobs(_jobs);
+            return (true, _language.Get("JobDuplicated"));
+        }
+
         /// <summary>Removes a job by 0-based index.</summary>
         public (bool Success, string Message) RemoveJob(int index)
         {

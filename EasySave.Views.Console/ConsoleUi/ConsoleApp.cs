@@ -189,16 +189,12 @@ namespace EasySave.Views.Console.ConsoleUi
 
         private void ChangeSettings()
         {
+            // v1.1 exposes only log format (JSON/XML). CryptoSoft and business software are v2.0+ features.
             var settings = _context.BackupViewModel.GetSettings();
             System.Console.WriteLine($"{_context.LanguageService.Get("CurrentLogFormat")}: {settings.LogFormat}");
             string format = ConsolePrompts.Prompt(_context.LanguageService, "LogFormatPrompt").ToUpperInvariant();
             var formatResult = _context.BackupViewModel.ChangeLogFormat(format);
             System.Console.WriteLine(formatResult.Message);
-
-            System.Console.WriteLine($"{_context.LanguageService.Get("CurrentCryptoExtensions")}: {settings.CryptoExtensions}");
-            string extensions = ConsolePrompts.Prompt(_context.LanguageService, "CryptoExtensionsPrompt");
-            var cryptoResult = _context.BackupViewModel.ChangeCryptoExtensions(extensions);
-            System.Console.WriteLine(cryptoResult.Message);
         }
 
         private void RunExecutionDashboard(IReadOnlyList<int> indexes)

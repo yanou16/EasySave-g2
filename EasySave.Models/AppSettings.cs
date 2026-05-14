@@ -22,5 +22,11 @@ namespace EasySave.Models
 
         /// <summary>Max file size in KB that can transfer simultaneously. 0 = no limit.</summary>
         public long MaxParallelFileSizeKb { get; set; } = 0;
+
+        /// <summary>Log destination. Accepted values: "Local", "Docker", "Both".</summary>
+        public string LogDestination { get; set; } = "Local";
+
+        /// <summary>Docker log server URL (e.g. http://localhost:5000/logs). Used when LogDestination is Docker or Both.</summary>
+        public string DockerLogUrl { get; set; } = string.Empty;
     }
 }
