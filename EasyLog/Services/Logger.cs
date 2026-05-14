@@ -37,6 +37,11 @@ namespace EasyLog.Services
             : this(logDirectory, LogFormat.Json, LogDestination.Local, string.Empty)
         { }
 
+        /// <summary>Convenience overload — local logging only (no Docker). Keeps backward compatibility with v1/v2 code.</summary>
+        public Logger(string logDirectory, LogFormat format)
+            : this(logDirectory, format, LogDestination.Local, string.Empty)
+        { }
+
         /// <summary>
         /// Appends a file transfer event to today's log file.
         /// Thread-safe — can be called from multiple parallel jobs simultaneously.

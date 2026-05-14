@@ -239,11 +239,15 @@ namespace EasySave.ViewModels.Services
                 ResumeAllFromBusiness();
         }
 
-        /// <summary>Updates the logger format at runtime.</summary>
+        /// <summary>Updates the logger format and destination at runtime (called when Settings are saved).</summary>
         public void UpdateLogFormat(string format)
         {
             string dir = Path.Combine(Path.GetDirectoryName(_stateFilePath)!, "Logs");
             LogFormat logFormat = format == "XML" ? LogFormat.Xml : LogFormat.Json;
+            AppSettings settings = _settingsService.Load();
+            var destination = Enum.TryParse<EasyLog.Models.LogDestination>(settings.LogDestination, true, out var dest)
+                ? dest : EasyLog.Models.LogDestination.Local;
+            _logger = new Logger(dir, logFormat, destination, settings.DockerLogUrl ?? string.Empty);
         }
 
         private void ProcessFile(
