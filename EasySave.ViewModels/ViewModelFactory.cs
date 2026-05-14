@@ -21,7 +21,19 @@ namespace EasySave.ViewModels
             var settings = settingsService.Load();
             var logFormat = settings.LogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
 
-            var logger = new Logger(logsDirectory, logFormat);
+            var destination = Enum.TryParse<EasyLog.Models.LogDestination>(
+                settings.LogDestination,
+                true,
+                out var parsedDestination)
+                ? parsedDestination
+                : EasyLog.Models.LogDestination.Local;
+
+            var logger = new Logger(
+                logsDirectory,
+                logFormat,
+                destination,
+                settings.DockerLogUrl
+            );
             var configService = new ConfigService(appDataDirectory);
             var languageService = new LanguageService();
             var allStates = new List<BackupStateEntry>();

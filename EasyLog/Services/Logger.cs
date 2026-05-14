@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Xml.Linq;
 using EasyLog.Models;
+using System.Net.Http;
+using System.Text;
 
 namespace EasyLog.Services
 {
@@ -13,19 +15,27 @@ namespace EasyLog.Services
     {
         private readonly string _logDirectory;
         private readonly LogFormat _format;
+        private readonly LogDestination _destination;
+        private readonly string _dockerUrl;
+        private readonly HttpClient _httpClient = new();
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
         // Thread-safety: one write at a time per logger instance
         private readonly object _fileLock = new();
 
-        public Logger(string logDirectory) : this(logDirectory, LogFormat.Json) { }
-
-        public Logger(string logDirectory, LogFormat format)
+        public Logger(string logDirectory, LogFormat format, LogDestination destination, string dockerUrl)
         {
             _logDirectory = logDirectory;
             _format = format;
+            _destination = destination;
+            _dockerUrl = dockerUrl;
+
             Directory.CreateDirectory(_logDirectory);
         }
+
+        public Logger(string logDirectory)
+            : this(logDirectory, LogFormat.Json, LogDestination.Local, string.Empty)
+        { }
 
         /// <summary>
         /// Appends a file transfer event to today's log file.
@@ -49,6 +59,20 @@ namespace EasyLog.Services
                     WriteXml(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
                 else
                     WriteJson(backupName, sourcePath, targetPath, fileSize, transferTimeMs, encryptionTimeMs, timestamp);
+            }
+
+            if (_destination == LogDestination.Docker || _destination == LogDestination.Both)
+            {
+                SendToDockerAsync(new
+                {
+                    Timestamp = timestamp,
+                    BackupName = backupName,
+                    SourcePath = sourcePath,
+                    TargetPath = targetPath,
+                    FileSize = fileSize,
+                    TransferTimeMs = transferTimeMs,
+                    EncryptionTimeMs = encryptionTimeMs
+                });
             }
         }
 
@@ -155,6 +179,25 @@ namespace EasyLog.Services
         public void LogBusinessSoftwareDetected(string backupName, string softwareName)
         {
             WriteLog(backupName, $"BLOCKED:{softwareName}", softwareName, 0, 0, 0);
+        }
+
+
+        private async void SendToDockerAsync(object logEntry)
+        {
+            if (string.IsNullOrWhiteSpace(_dockerUrl))
+                return;
+
+            try
+            {
+                var json = JsonSerializer.Serialize(logEntry);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                await _httpClient.PostAsync(_dockerUrl, content);
+            }
+            catch
+            {
+                // On ne casse jamais la sauvegarde si Docker est down
+            }
         }
     }
 }

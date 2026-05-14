@@ -244,7 +244,6 @@ namespace EasySave.ViewModels.Services
         {
             string dir = Path.Combine(Path.GetDirectoryName(_stateFilePath)!, "Logs");
             LogFormat logFormat = format == "XML" ? LogFormat.Xml : LogFormat.Json;
-            _logger = new Logger(dir, logFormat);
         }
 
         private void ProcessFile(

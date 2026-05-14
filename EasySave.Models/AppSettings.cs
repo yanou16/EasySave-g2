@@ -27,6 +27,6 @@ namespace EasySave.Models
         public string LogDestination { get; set; } = "Local";
 
         /// <summary>Docker log server URL (e.g. http://localhost:5000/logs). Used when LogDestination is Docker or Both.</summary>
-        public string DockerLogUrl { get; set; } = string.Empty;
+        public string DockerLogUrl { get; set; } = "http://localhost:5000/logs";
     }
 }
