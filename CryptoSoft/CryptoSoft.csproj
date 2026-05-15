@@ -5,9 +5,10 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <!-- Publish options -->
-        <PublishSingleFile Condition="'$(PublishSingleFile)' == ''">false</PublishSingleFile>
-        <SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
+        <!-- Self-contained single-file: works next to the WPF self-contained app without a separate .NET runtime -->
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
         <PublishTrimmed Condition="'$(PublishTrimmed)' == ''">false</PublishTrimmed>
         <!-- Branding -->
         <Authors>ProSoft</Authors>

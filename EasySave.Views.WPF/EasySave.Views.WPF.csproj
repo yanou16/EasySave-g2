@@ -32,23 +32,16 @@
     </None>
   </ItemGroup>
 
+  <!-- Build CryptoSoft then copy all its output files next to the WPF exe -->
   <Target Name="CopyCryptoSoftExecutable" AfterTargets="Build;Publish">
-    <ItemGroup>
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft.exe" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft.exe')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft.dll" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft.deps.json" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\CryptoSoft.runtimeconfig.json" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.exe" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.exe')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.dll" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.dll')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.deps.json" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.deps.json')" />
-      <CryptoSoftExecutable Include="..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.runtimeconfig.json" Condition="Exists('..\CryptoSoft\bin\$(Configuration)\net8.0\$(RuntimeIdentifier)\CryptoSoft.runtimeconfig.json')" />
-    </ItemGroup>
-    <PropertyGroup>
-      <CryptoSoftDestination Condition="'$(PublishDir)' != ''">$(PublishDir)</CryptoSoftDestination>
-      <CryptoSoftDestination Condition="'$(CryptoSoftDestination)' == ''">$(OutDir)</CryptoSoftDestination>
-    </PropertyGroup>
-    <Copy SourceFiles="@(CryptoSoftExecutable)" DestinationFolder="$(CryptoSoftDestination)" SkipUnchangedFiles="true" />
+    <!-- 1. Compile CryptoSoft for the current Configuration -->
+    <MSBuild Projects="$(MSBuildProjectDirectory)\..\CryptoSoft\CryptoSoft.csproj"
+             Properties="Configuration=$(Configuration)"
+             Targets="Build" />
+
+    <!-- 2. xcopy the self-contained CryptoSoft.exe (win-x64) → OutDir -->
+    <Exec Command="xcopy /Y /Q &quot;$(MSBuildProjectDirectory)\..\CryptoSoft\bin\$(Configuration)\net8.0\win-x64\CryptoSoft.exe&quot; &quot;$(OutDir)&quot;" />
+
+    <Message Text="CryptoSoft copied to $(OutDir)" Importance="high" />
   </Target>
 </Project>
