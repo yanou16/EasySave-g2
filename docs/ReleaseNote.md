@@ -110,3 +110,114 @@ All application data is stored under `%LocalAppData%\ProSoft\EasySave\` — no t
 | Encryption field | `EncryptionTimeMs` |
 | CryptoSoft files | Must be shipped beside the executable |
 | Small publish | Framework-dependent Windows x64 output, requires .NET 8 Runtime |
+
+---
+
+## Version 3.0.0 — May 2026
+
+**Branch:** `livrable3` · **Tag:** `v3.0.0`
+
+### Overview
+EasySave 3.0 is the final deliverable. It introduces a production-ready WPF graphical interface, true parallel backup execution, real-time job monitoring, a centralised Docker log server, and a test suite of 100 unit tests.
+
+---
+
+### What's New
+
+#### 🖥️ WPF Graphical Interface (Bouyacoub Rayan)
+- Full WPF application with live `DataGrid` reflecting job status in real time
+- Job status colour codes: **Idle** (grey) · **Running** (blue) · **Paused** (orange) · **Stopped** (red) · **Finished** (green)
+- Keyboard shortcuts: `Ctrl+N` new job · `Ctrl+E` edit · `Ctrl+F` duplicate · `F5` run · `F6` run all · `Ctrl+,` settings · `Del` delete
+- Settings dialog: log format (JSON/XML), log destination (Local / Docker / Both), Docker URL, large-file threshold, CryptoSoft extensions, blocked business software list
+- Multi-selection: run / pause / resume / stop several jobs simultaneously
+
+#### ⚡ Parallel Execution
+- `Parallel.ForEach` + `Task.WhenAll` replace the sequential v2.0 loop
+- `ParallelCoordinator` enforces two semaphores:
+  - **Large-file slot** (`SemaphoreSlim(1,1)`) — only one large file copies at a time across all jobs
+  - **CryptoSoft slot** (`SemaphoreSlim(1,1)`) — matches the CryptoSoft mono-instance Mutex
+- **Priority queue** — `.priority` files are transferred before all others; a `_pendingPriorityFiles` counter blocks non-priority files while priority work remains
+
+#### ⏸️ Pause / Resume / Stop
+- Per-job `ManualResetEventSlim` (PauseGate pattern) — pauses at next file boundary, never mid-transfer
+- `CancellationTokenSource` per job for clean Stop
+- `BusinessSoftwareWatcher` polls `Process.GetProcesses()` every 2 s; auto-pauses all running jobs when a blocked software is detected, resumes when it exits
+- `PauseAll` / `ResumeAll` tied to toolbar buttons
+
+#### 🐳 Docker Centralised Log Server
+- ASP.NET Core minimal API in Docker
+- **Log persistence** — entries are written to `CentralLogs/yyyy-MM-dd.json` inside the container (volume-mountable)
+- **Machine differentiation** — `MachineName` injected from the `X-Machine-Name` HTTP header; identifies which workstation sent each entry
+- Endpoints: `POST /logs` · `GET /logs/today` · `GET /logs/files`
+- Three log destination modes: `Local` · `Docker` · `Both`
+
+#### 🧪 Test Suite — 100 Tests
+| Test class | Tests | Scope |
+|---|---|---|
+| `V3AuditTests` | 44 | Parallelism, priority, semaphores, hash chain, JSON/XML logs, UpdateJob, DuplicateJob, Pause/Resume/Stop, CryptoSoft, ParallelCoordinator, state.json |
+| `LoggerTests` | ~15 | JSON/XML log writing, field presence, hash chain integrity |
+| `BackupServiceTests` | ~15 | CRUD, full backup, differential backup |
+| `SecurityHelperTests` | ~13 | SHA-256 signatures, path normalisation |
+| `CryptoSoftTests` | ~13 | XOR correctness, mono-instance, extension filtering |
+
+---
+
+### Bug Fixes
+
+| # | Description | File |
+|---|---|---|
+| 1 | `Logger(string, LogFormat)` constructor removed by refactor, breaking 7 CI builds — restored as convenience overload | `EasyLog/Services/Logger.cs` |
+| 2 | `UpdateLogFormat()` was a silent no-op — computed new format but never reassigned `_logger` | `EasySave.ViewModels/Services/BackupService.cs` |
+| 3 | Docker server only printed to console, never persisted entries to disk | `EasySave.DockerLogServer/Program.cs` |
+| 4 | Docker server had no machine differentiation — all entries were anonymous | `EasySave.DockerLogServer/Program.cs` |
+
+---
+
+### Generated Files
+
+| File | Location |
+|------|----------|
+| `jobs.json` | `%LocalAppData%\ProSoft\EasySave\` |
+| `state.json` | `%LocalAppData%\ProSoft\EasySave\` |
+| `yyyy-MM-dd.json` / `.xml` | `%LocalAppData%\ProSoft\EasySave\Logs\` |
+| `config.json` | `%AppData%\EasySave\` |
+| Docker central logs | `/app/CentralLogs/yyyy-MM-dd.json` (inside container) |
+
+---
+
+### How to Run
+
+**GUI**
+```
+dotnet publish EasySave.Views.WPF -c Release -r win-x64 --self-contained
+```
+
+**Docker Log Server**
+```bash
+cd EasySave.DockerLogServer
+docker build -t easysave-logserver .
+docker run -d -p 5050:8080 -v easysave_logs:/app/CentralLogs --name easysave-log easysave-logserver
+```
+Set **DockerLogUrl** = `http://localhost:5050/logs` in EasySave Settings.
+
+**Unit Tests**
+```
+dotnet test EasySave.Tests --logger "console;verbosity=detailed"
+```
+
+---
+
+### Technical Information v3.0
+
+| Item | Detail |
+|---|---|
+| Language | C# |
+| Framework | .NET 8.0 |
+| GUI framework | WPF |
+| Parallelism | `Parallel.ForEach` + `Task.WhenAll` + `SemaphoreSlim` |
+| Encryption | XOR via CryptoSoft.exe (external process) |
+| Log integrity | SHA-256 chained hash (blockchain-style) |
+| Docker server | ASP.NET Core minimal API |
+| Unit tests | xUnit — 100 tests |
+| CI/CD | GitHub Actions — build → test → publish artifacts |
+| Minimum OS | Windows 10 |

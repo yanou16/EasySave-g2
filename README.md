@@ -1,521 +1,466 @@
-# EasySave v1.0
+# EasySave 3.0
 
-> Professional backup software developed by **ProSoft** — Livrable 01  
-> PGE A3 FISE — Génie Logiciel 2025-2026
-
-> Current branch note: this branch is treated as **EasySave v1.1**. It keeps the v1.0 console base, adds JSON/XML log selection, and includes v2.0 progress items such as WPF groundwork and CryptoSoft integration.
+> Professional backup software developed by **ProSoft**  
+> PGE A3 FISE — Génie Logiciel 2025-2026 — **Livrable 3**
 
 **Team — Groupe 02**
 
 | Member | Role |
 |---|---|
-| MESSADI Mahmoud | EasySave.Console — UI & CLI |
-| RECHAM Wissam | EasySave.ViewModels — Business logic |
-| LOUZAZNA Rayane | EasySave.ViewModels — Business logic |
-| BOUYACOUB Rayan | EasyLog.dll — Logging & state |
+| MESSADI Mahmoud | Console UI · Pause/Resume/Stop controls · BackupService v3.0 |
+| RECHAM Wissam | Parallel execution · Priority files · Large-file semaphore |
+| LOUZAZNA Rayane | BusinessSoftwareWatcher · Auto-pause/resume · BackupService v3.0 |
+| BOUYACOUB Rayan | WPF GUI v3.0 · DataGrid · ProgressBars · Toasts · Settings · CI/CD · Tests |
+| Lowsttt | CryptoSoft Mono-instance · Docker log server |
+
+**CI/CD Status** — GitHub Actions runs on every push: build → 100 unit tests → publish Console + GUI artifacts.
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Architecture](#2-architecture)
-3. [Project Structure](#3-project-structure)
-4. [Requirements & Installation](#4-requirements--installation)
-5. [How to Run](#5-how-to-run)
-6. [User Guide](#6-user-guide)
-7. [Generated Files](#7-generated-files)
-8. [Design Patterns](#8-design-patterns)
-9. [UML Diagrams](#9-uml-diagrams)
-10. [Technical Specifications](#10-technical-specifications)
-11. [Roadmap](#11-roadmap)
+2. [What's New in v3.0](#2-whats-new-in-v30)
+3. [Architecture](#3-architecture)
+4. [Project Structure](#4-project-structure)
+5. [Requirements & Installation](#5-requirements--installation)
+6. [How to Run](#6-how-to-run)
+7. [Docker Log Server](#7-docker-log-server)
+8. [User Guide — GUI](#8-user-guide--gui)
+9. [Generated Files](#9-generated-files)
+10. [Design Patterns](#10-design-patterns)
+11. [Testing](#11-testing)
+12. [Technical Specifications](#12-technical-specifications)
+13. [Version History](#13-version-history)
 
 ---
 
 ## 1. Project Overview
 
-EasySave is a backup management tool built for ProSoft's software suite. It allows users to define, manage and execute file backup jobs between source and target directories, with full real-time progress tracking and tamper-evident logging.
+EasySave is a professional backup management tool built for ProSoft's software suite. It lets users define, manage and execute file backup jobs between source and target directories, with full real-time progress tracking, parallel execution, and tamper-evident logging.
 
-### Key Features
+### Key Features (v3.0)
 
-- **Up to 5 backup jobs** — each with a unique name, source directory, target directory and backup type
-- **Full backup** — copies every file and sub-directory from source to target
-- **Differential backup** — copies only files that have changed since the last backup
-- **Sequential execution** — run one job or all jobs one after another
-- **Command-line interface** — scriptable, no interaction needed
-- **Interactive menu** — user-friendly console UI
-- **Multi-language** — English and French, auto-detected from system culture
-- **Real-time state tracking** — `state.json` updated after every file operation
-- **Daily JSON log** — full audit trail via `EasyLog.dll` with SHA-256 tamper detection
-- **MVVM-ready architecture** — designed for easy migration to WPF GUI (v2.0)
-
-### v1.1 Additions
-
-- **JSON or XML daily logs** — user-selectable log format persisted in settings.
-- **Unlimited jobs on this branch** — job management no longer enforces the v1.0 limit.
-- **CryptoSoft groundwork** — configured extensions can be encrypted during backup, and logs record encryption time.
+- **Unlimited backup jobs** — Full and Differential modes
+- **Parallel execution** — all jobs run simultaneously using all CPU cores
+- **Priority file management** — user-defined extensions (e.g. `.pdf`) always transfer before others
+- **Large-file bandwidth control** — only one file above the configured size transfers at a time
+- **Per-job real-time controls** — Pause ⏸ / Resume ▶ / Stop ⏹ with live ProgressBar
+- **Global controls** — Pause All / Resume All / Stop All in one click
+- **Auto-pause on business software** — detects a configured process and pauses all jobs automatically
+- **CryptoSoft encryption** — XOR encryption for configured file extensions (mono-instance)
+- **Centralised Docker logs** — logs sent to a Docker server, with machine identification
+- **3 log destinations** — Local only / Docker only / Both
+- **SHA-256 chained log integrity** — tamper detection on every daily log
+- **Multi-language** — English and French, switchable at runtime
+- **WPF GUI** — dark professional interface with DataGrid, toasts, context menu, search
 
 ---
 
-## 2. Architecture
+## 2. What's New in v3.0
 
-EasySave follows a **MVVM-inspired layered architecture**. Each layer is a separate .NET project — not just a folder — ensuring strong separation of concerns and maximum scalability.
-
-```
-┌────────────────────────────────────────────┐
-│           EasySave.Console                 │  ← Presentation (View)
-│  Program · ConsoleApp · ConsoleMenu        │
-│  ConsolePrompts · CommandLineParser        │
-│  AppBootstrapper · ConsoleAppContext       │
-└───────────────────┬────────────────────────┘
-                    │ uses
-┌───────────────────▼────────────────────────┐
-│          EasySave.ViewModels               │  ← Business Logic (ViewModel)
-│  BackupViewModel                           │
-│  BackupService · ConfigService             │
-│  LanguageService                           │
-└──────────┬─────────────────┬───────────────┘
-           │ uses            │ uses
-┌──────────▼──────┐  ┌───────▼───────────────┐
-│ EasySave.Models │  │      EasyLog (DLL)    │  ← Logging & State
-│  BackupJob      │  │  Logger · StateManager│
-│  BackupType     │  │  SecurityHelper       │
-└─────────────────┘  └───────────────────────┘
-```
-
-### Dependency Rules (one-way only)
-
-```
-Views  →  ViewModels  →  Models
-                    →  EasyLog
-                    →  CryptoSoft packaging
-```
-
-No layer ever references a layer above it. This guarantees that `EasySave.ViewModels` can be reused in the future WPF application without any modification.
-
-Current View projects (`EasySave.Views.Console`, `EasySave.Views.WPF`) reference only `EasySave.ViewModels` and `EasySave.Models`.
+| Feature | v2.0 | v3.0 |
+|---|---|---|
+| Backup execution | Sequential | **Parallel** (all jobs simultaneously) |
+| Priority files | — | ✅ User-defined extensions, transferred first |
+| Large file limit | — | ✅ Max n KB in parallel (configurable) |
+| Pause / Resume / Stop | — | ✅ Per job + global (All) |
+| Business software | Blocks launch | **Auto-pause** + auto-resume on close |
+| CryptoSoft | Single instance | **Mutex mono-instance enforced** |
+| Log destination | Local only | **Local / Docker / Both** |
+| Docker log server | — | ✅ Centralised daily file with MachineName |
+| GUI controls | Basic | ProgressBar, status badges, toasts, search, multi-select |
+| Unit tests | — | **100 tests** covering all v3.0 features |
 
 ---
 
-## 3. Project Structure
+## 3. Architecture
 
-### v1.1 / v2.0 progress projects
+EasySave follows a strict **MVVM layered architecture** across 6 independent .NET projects + 1 Docker service.
 
-| Project | Role |
-|---|---|
-| `EasySave.Views.Console` | Console presentation layer |
-| `EasySave.Views.WPF` | WPF presentation layer started for v2.0 |
-| `EasySave.ViewModels` | Shared orchestration, services, settings, backup execution |
-| `EasySave.Models` | Shared data models |
-| `EasyLog` | JSON/XML logs and state models |
-| `CryptoSoft` | External encryption executable used by the backup service |
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    EasySave.sln                             │
+│                                                             │
+│  ┌──────────────────┐    ┌──────────────────────────────┐  │
+│  │ Views.Console    │    │ Views.WPF (P4)               │  │
+│  │ (v1/v2 CLI)      │    │ MainWindow · JobRowViewModel  │  │
+│  └────────┬─────────┘    │ AddJobWindow · SettingsWindow │  │
+│           │              │ ToastHost                     │  │
+│           └──────┬───────└──────────────┬────────────────┘  │
+│                  │                      │                   │
+│          ┌───────▼──────────────────────▼──────────┐       │
+│          │          EasySave.ViewModels             │       │
+│          │  BackupViewModel · BackupService         │       │
+│          │  ParallelCoordinator · BusinessWatcher   │       │
+│          │  ConfigService · SettingsService         │       │
+│          │  LanguageService · CryptoSoftService     │       │
+│          └──────────────┬──────────────────────────┘       │
+│                         │                                   │
+│           ┌─────────────┴──────────────┐                   │
+│           │                            │                   │
+│  ┌────────▼────────┐   ┌───────────────▼──────────────┐   │
+│  │ EasySave.Models │   │  «dll» EasyLog               │   │
+│  │ BackupJob       │   │  Logger (JSON/XML + Docker)   │   │
+│  │ AppSettings     │   │  SecurityHelper (SHA-256)     │   │
+│  │ BackupType      │   │  BackupStateEntry · LogEntry  │   │
+│  │ BackupRunStatus │   └──────────────────────────────┘   │
+│  └─────────────────┘                                       │
+│                                                             │
+│  ┌──────────────────┐    ┌──────────────────────────────┐  │
+│  │ CryptoSoft.exe   │    │ EasySave.DockerLogServer     │  │
+│  │ XOR encryption   │    │ ASP.NET Core · POST /logs    │  │
+│  │ Mutex (mono-inst)│    │ Centralized daily .json file │  │
+│  └──────────────────┘    └──────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Dependency rule (one-way only):**  
+`Views → ViewModels → Models / EasyLog`  
+No layer ever references a layer above it.
+
+---
+
+## 4. Project Structure
 
 ```
 EasySave-g2/
+├── EasySave.sln
+├── README.md
+├── .github/workflows/ci.yml          ← CI/CD pipeline
 │
-├── EasySave.sln                          ← Visual Studio solution
-├── README.md                             ← This file
-├── .gitignore
+├── EasyLog/                          ← «dll» Logging library
+│   ├── Services/
+│   │   ├── Logger.cs                 ← JSON/XML daily log + Docker HTTP POST
+│   │   ├── SecurityHelper.cs         ← SHA-256 chained hashing
+│   │   └── StateManager.cs
+│   └── Models/
+│       ├── LogEntry.cs
+│       ├── BackupStateEntry.cs
+│       └── LogDestination.cs         ← Local / Docker / Both
 │
-├── docs/
-│   ├── ReleaseNote.md                    ← Version history
-│   ├── UserManual.md                     ← One-page user manual
-│   └── UML/
-│       ├── README.md                     ← Diagram explanations
-│       └── Livrable 01 groupe 02.pdf     ← Full UML document
+├── EasySave.Models/
+│   ├── BackupJob.cs
+│   ├── AppSettings.cs                ← All 8 settings fields
+│   ├── BackupType.cs
+│   └── BackupRuntimeStatus.cs        ← Idle/Running/Paused/Stopped/Finished/Error
 │
-├── EasyLog/                              ← Class Library (DLL)
-│   ├── EasyLog.csproj
-│   ├── README.md                         ← DLL developer documentation
-│   ├── Models/
-│   │   ├── LogEntry.cs                   ← Log line data model
-│   │   └── BackupStateEntry.cs           ← Real-time state data model
+├── EasySave.ViewModels/
+│   ├── BackupViewModel.cs            ← Central facade
+│   ├── ViewModelFactory.cs           ← Composition root (Factory pattern)
 │   └── Services/
-│       ├── Logger.cs                     ← Daily JSON log writer
-│       ├── StateManager.cs               ← state.json writer
-│       ├── SecurityHelper.cs             ← SHA-256 chaining utilities
-│       └── LogIntegrityVerifier.cs       ← Tamper detection
+│       ├── BackupService.cs          ← Parallel engine + JobControl (pause gate)
+│       ├── ParallelCoordinator.cs    ← Priority queue + large-file semaphore
+│       ├── BusinessSoftwareWatcher.cs← Polls OS processes every 2s
+│       ├── CryptoSoftService.cs      ← Adapter for CryptoSoft.exe
+│       ├── ConfigService.cs          ← jobs.json CRUD
+│       ├── SettingsService.cs        ← config.json
+│       └── LanguageService.cs        ← EN/FR JSON resources
 │
-├── EasySave.Models/                      ← Class Library
-│   ├── EasySave.Models.csproj
-│   ├── BackupJob.cs                      ← Backup job data model
-│   └── BackupType.cs                     ← Full / Differential enum
+├── EasySave.Views.WPF/               ← GUI (P4)
+│   ├── MainWindow.xaml / .cs
+│   ├── JobRowViewModel.cs            ← INotifyPropertyChanged per row
+│   ├── Controls/ToastHost.xaml / .cs ← Slide-in notifications
+│   └── Views/
+│       ├── AddJobWindow.xaml / .cs   ← Add + Edit modes
+│       └── SettingsWindow.xaml / .cs ← All 8 settings
 │
-├── EasySave.ViewModels/                  ← Class Library
-│   ├── EasySave.ViewModels.csproj
-│   ├── BackupViewModel.cs                ← Central facade (ViewModel)
-│   └── Services/
-│       ├── BackupService.cs              ← File copy engine
-│       ├── ConfigService.cs              ← Job persistence (JSON)
-│       └── LanguageService.cs            ← FR/EN i18n
+├── EasySave.Views.Console/           ← CLI (v1/v2 compatible)
 │
-└── EasySave.Console/                     ← Console Application (.exe)
-    ├── EasySave.Console.csproj
-    ├── Program.cs                        ← Entry point
-    ├── Bootstrap/
-    │   ├── AppBootstrapper.cs            ← Dependency injection root
-    │   └── ConsoleAppContext.cs          ← Shared application context
-    ├── Cli/
-    │   ├── CommandLineParser.cs          ← Parses "1-3" and "1;3" args
-    │   └── CommandLineParseResult.cs
-    ├── ConsoleUi/
-    │   ├── ConsoleApp.cs                 ← Interactive loop & CLI dispatch
-    │   ├── ConsoleMenu.cs                ← Menu rendering (static)
-    │   └── ConsolePrompts.cs             ← User input helpers (static)
-    └── Resources/
-        ├── en.json                       ← English strings
-        └── fr.json                       ← French strings
+├── CryptoSoft/                       ← External encryption executable
+│   ├── Program.cs                    ← Mutex mono-instance guard
+│   └── FileManager.cs                ← XOR encryption
+│
+├── EasySave.DockerLogServer/         ← Docker centralisation service
+│   ├── Program.cs                    ← POST /logs + GET /logs/today
+│   └── Dockerfile
+│
+└── EasySave.Tests/                   ← 100 xUnit tests
+    ├── BackupServiceTests.cs
+    ├── BackupViewModelTests.cs
+    ├── EdgeCaseTests.cs
+    ├── LanguageServiceTests.cs
+    └── V3AuditTests.cs               ← 44 v3.0 feature tests
 ```
 
 ---
 
-## 4. Requirements & Installation
-
-### Prerequisites
+## 5. Requirements & Installation
 
 | Requirement | Version |
 |---|---|
-| Operating System | Windows 10 or later |
+| Operating System | Windows 10 / 11 or later |
 | .NET Runtime | **8.0** |
 | Visual Studio | 2022 or later (for development) |
-| Disk space | ~50 MB |
+| Docker Desktop | For the log server (optional) |
 | RAM | 512 MB minimum |
-
-### Getting the source
 
 ```bash
 git clone https://github.com/yanou16/EasySave-g2.git
 cd EasySave-g2
+git checkout livrable3
+dotnet restore EasySave.sln
+dotnet build EasySave.sln --configuration Release
 ```
 
-### Build
+---
+
+## 6. How to Run
+
+### GUI (v3.0 — recommended)
 
 ```bash
-dotnet build EasySave.sln
+dotnet run --project EasySave.Views.WPF/EasySave.Views.WPF.csproj
 ```
 
----
+Or open `EasySave.sln` in Visual Studio 2022, set `EasySave.Views.WPF` as startup project, press **F5**.
 
-## 5. How to Run
-
-### Visual Studio 2022
-
-1. Open `EasySave.sln`
-2. Right-click **EasySave.Console** → *Set as Startup Project*
-3. Press `F5` to run in debug mode
-
-**To test CLI arguments in Visual Studio:**
-- Right-click **EasySave.Console** → *Properties* → *Debug*
-- Set *Command line arguments* to e.g. `1-3`
-- Press `F5`
-
-### Command Line — Interactive Menu
+### Console (v1.0 / v1.1 CLI)
 
 ```bash
-dotnet run --project EasySave.Console/EasySave.Console.csproj
+# Interactive menu
+dotnet run --project EasySave.Views.Console/EasySave.Views.Console.csproj
+
+# CLI — run job 2
+EasySave.exe 2
+
+# CLI — run jobs 1 to 3
+EasySave.exe 1-3
+
+# CLI — run jobs 1 and 3
+EasySave.exe 1;3
 ```
 
-Or run the compiled executable directly:
+### Run all tests
 
 ```bash
-cd EasySave.Console/bin/Debug/net8.0/
-EasySave.Console.exe
+dotnet test EasySave.Tests/EasySave.Tests.csproj --configuration Release
+# Expected: 100 passed, 0 failed
 ```
 
-### Command Line — Direct Execution (CLI mode)
+---
 
-Execute jobs without the interactive menu:
+## 7. Docker Log Server
+
+The Docker log server centralises daily log files from all EasySave instances on all machines.
+
+### Start the server
 
 ```bash
-# Run job number 2
-EasySave.Console.exe 2
+# Build the image (once)
+docker build -f EasySave.DockerLogServer/Dockerfile -t easysave-logs .
 
-# Run jobs 1, 2 and 3 (range)
-EasySave.Console.exe 1-3
-
-# Run jobs 1 and 3 (list)
-EasySave.Console.exe 1;3
+# Run on port 5050
+docker run -d -p 5050:8080 --name easysave-log-server easysave-logs
 ```
 
-This mode is fully scriptable and exits with code `0` on success, `1` on error.
+### Configure EasySave
 
----
+Settings → **Log Destination** → `Docker` or `Both`  
+Settings → **Docker URL** → `http://localhost:5050/logs`
 
-## 6. User Guide
+### Available endpoints
 
-### First Launch
-
-When you start the application in interactive mode, you are asked to select a language:
-
-```
-Language / Langue (en/fr): fr
-```
-
-Type `en` for English or `fr` for French, then press Enter.
-
----
-
-### Main Menu
-
-```
-EasySave 1.0 Console
-========================================
-Data directory: C:\Users\...\ProSoft\EasySave
-
-Configured backup jobs
-[1] My Documents | Source: C:\Users\Me\Documents | Target: D:\Backup\Docs | Type: Full
-[2] Photos       | Source: C:\Users\Me\Pictures  | Target: D:\Backup\Photos | Type: Differential
-
-Main menu
-1. List backup jobs
-2. Add a backup job
-3. Remove a backup job
-4. Execute one backup job
-5. Execute all backup jobs
-6. Quit
-
-Choose an option:
-```
-
----
-
-### Adding a Backup Job (option 2)
-
-```
-Backup name: My Documents
-Source directory: C:\Users\Me\Documents
-Target directory: D:\Backup\Docs
-Choose the backup type (1=Full, 2=Differential): 1
-
-Backup job added successfully.
-```
-
-**Rules:**
-- v1.0 delivery: maximum **5 jobs** can be configured
-- Current v1.1 branch: job count is unlimited
-- Job names must be **unique**
-- Source and target can be local drives, external drives, or network paths (UNC)
-- All files and sub-directories are included
-
----
-
-### Backup Types
-
-| Type | Behaviour |
+| Endpoint | Description |
 |---|---|
-| **Full** | Copies **every** file from source to target, regardless of changes |
-| **Differential** | Copies only files that are **newer** in source than the existing copy in target |
+| `POST /logs` | Receive a log entry from any EasySave instance (header `X-Machine-Name`) |
+| `GET /logs/today` | Read today's centralised log file |
+| `GET /logs/files` | List all daily log files stored on the server |
 
-Use **Full** for the first backup of a location.  
-Use **Differential** for faster subsequent runs that only sync changes.
-
----
-
-### Executing a Backup (option 4)
-
-```
-[1] My Documents
-[2] Photos
-
-Enter the backup number: 1
-
-Backup execution completed.
-```
-
-The application shows the job name and confirms completion. Progress is written in real time to `state.json`.
-
----
-
-### Executing All Jobs (option 5)
-
-All configured jobs are run **sequentially**, one after another.  
-This is equivalent to running `EasySave.Console.exe 1-5` from the command line.
-
----
-
-### Removing a Job (option 3)
-
-```
-[1] My Documents
-[2] Photos
-
-Enter the backup number: 2
-
-Backup job removed successfully.
-```
-
-The job is removed and IDs are renumbered automatically. The change is saved immediately.
-
----
-
-### CLI Quick Reference
-
-| Command | Effect |
-|---|---|
-| `EasySave.Console.exe` | Start interactive menu |
-| `EasySave.Console.exe 1` | Run job 1 |
-| `EasySave.Console.exe 3` | Run job 3 |
-| `EasySave.Console.exe 1-3` | Run jobs 1, 2 and 3 |
-| `EasySave.Console.exe 2-5` | Run jobs 2, 3, 4 and 5 |
-| `EasySave.Console.exe 1;3` | Run jobs 1 and 3 |
-| `EasySave.Console.exe 2;4` | Run jobs 2 and 4 |
-
-Exit codes: `0` = success · `1` = invalid arguments or execution error
-
----
-
-## 7. Generated Files
-
-All files are stored under:  
-**`%LocalAppData%\ProSoft\EasySave\`**  
-(i.e. `C:\Users\<you>\AppData\Local\ProSoft\EasySave\`)
-
-> Paths such as `C:\temp\` are never used — ensuring compatibility with restricted server environments.
-
-### `jobs.json` — Configured jobs
+### Centralised log format (server-side)
 
 ```json
 [
   {
-    "Id": 1,
-    "Name": "My Documents",
-    "SourceDirectory": "C:\\Users\\Me\\Documents",
-    "TargetDirectory": "D:\\Backup\\Docs",
-    "Type": "Full"
+    "MachineName": "SERVER-PARIS",
+    "Timestamp": "2026-05-15 14:32:01",
+    "BackupName": "Documents",
+    "SourcePath": "C:\\Users\\...\\Documents\\report.pdf",
+    "TargetPath": "D:\\Backup\\report.pdf",
+    "FileSize": 204800,
+    "TransferTimeMs": 45,
+    "EncryptionTimeMs": 312
+  },
+  {
+    "MachineName": "SERVER-LYON",
+    "Timestamp": "2026-05-15 14:32:03",
+    ...
   }
 ]
 ```
 
-### `state.json` — Real-time progress (all jobs)
+### 3 log destination modes
 
-Updated after **every single file** operation so external monitoring tools can read it at any time.
+| Mode | Behaviour |
+|---|---|
+| `Local` | Logs written to `%LocalAppData%\ProSoft\EasySave\Logs\` only |
+| `Docker` | Logs sent to Docker server only (no local file) |
+| `Both` | Logs written locally AND sent to Docker server |
+
+---
+
+## 8. User Guide — GUI
+
+### Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+N` | Add new job |
+| `Ctrl+E` | Edit selected job |
+| `Ctrl+F` | Focus search box |
+| `F5` | Execute selected jobs |
+| `F6` | Execute all jobs |
+| `Ctrl+,` | Open Settings |
+| `Delete` | Remove selected jobs |
+
+### Multi-selection (like Windows Explorer)
+
+- **Click** → select one row
+- **Ctrl+Click** → toggle individual rows
+- **Shift+Click** → select a range
+- **Right-click** → context menu (Execute / Edit / Duplicate / Remove)
+
+### Per-job controls
+
+Each row has 3 action buttons:
+
+| Button | Condition | Effect |
+|---|---|---|
+| ⏸ Pause | Job running | Pauses after current file finishes |
+| ▶ Resume | Job paused | Resumes from where it stopped |
+| ⏹ Stop | Running or Paused | Immediate stop |
+
+### Global controls (toolbar)
+
+- **Pause All** — pauses every running job simultaneously
+- **Resume All** — resumes every paused job
+- **Stop All** — stops all jobs immediately
+
+### Status colours
+
+| Status | Colour | Meaning |
+|---|---|---|
+| Idle | Grey | Not started yet |
+| Running | Blue | Actively copying files |
+| Paused | Orange | Waiting for Resume |
+| Stopped | Red | Manually stopped |
+| Finished | Green | Completed successfully |
+| Error | Red | An error occurred |
+
+---
+
+## 9. Generated Files
+
+**Application data root:** `%LocalAppData%\ProSoft\EasySave\`
+
+| File | Path | Description |
+|---|---|---|
+| `jobs.json` | `…\EasySave\jobs.json` | Configured backup jobs |
+| `state.json` | `…\EasySave\state.json` | Real-time progress for all running jobs |
+| `Logs\YYYY-MM-DD.json` | `…\EasySave\Logs\` | Daily log (JSON format) |
+| `Logs\YYYY-MM-DD.xml` | `…\EasySave\Logs\` | Daily log (XML format, if selected) |
+| `config.json` | `%AppData%\EasySave\config.json` | Settings (language, log format, etc.) |
+
+### state.json example
 
 ```json
 [
   {
-    "BackupName": "My Documents",
-    "LastActionTimestamp": "2026-04-24 10:15:32",
-    "State": "Active",
+    "BackupName": "Documents",
+    "LastActionTimestamp": "2026-05-15 14:32:01",
+    "State": "Running",
     "TotalFiles": 245,
     "TotalSize": 536870912,
-    "Progress": 42.8,
-    "RemainingFiles": 140,
-    "RemainingSize": 307300000,
-    "CurrentSourceFile": "C:\\Users\\Me\\Documents\\report.docx",
-    "CurrentTargetFile": "D:\\Backup\\Docs\\report.docx",
+    "Progress": 67.3,
+    "RemainingFiles": 80,
+    "RemainingSize": 175000000,
+    "CurrentSourceFile": "C:\\Users\\Me\\Documents\\report.pdf",
+    "CurrentTargetFile": "D:\\Backup\\Docs\\report.pdf",
     "Error": ""
   }
 ]
 ```
 
-### `Logs\YYYY-MM-DD.json` — Daily audit log
-
-One file per day. In v1.1 the user can choose JSON or XML. Each entry is **cryptographically chained** with SHA-256 — modifying any entry breaks the chain, making tampering detectable.
+### Daily log entry (JSON)
 
 ```json
-[
-  {
-    "Timestamp": "2026-04-24 10:15:30",
-    "BackupName": "My Documents",
-    "SourcePath": "C:\\Users\\Me\\Documents\\report.docx",
-    "TargetPath": "D:\\Backup\\Docs\\report.docx",
-    "FileSize": 45056,
-    "TransferTimeMs": 18,
-    "EncryptionTimeMs": 0,
-    "PreviousHash": "GENESIS",
-    "Hash": "eW91ciBiYXNlNjQgaGFzaA=="
-  }
-]
+{
+  "Timestamp": "2026-05-15 14:32:01",
+  "BackupName": "Documents",
+  "SourcePath": "C:\\Users\\Me\\Documents\\report.pdf",
+  "TargetPath": "D:\\Backup\\Docs\\report.pdf",
+  "FileSize": 204800,
+  "TransferTimeMs": 45,
+  "EncryptionTimeMs": 312,
+  "PreviousHash": "a3f9c2d1...",
+  "Hash": "7b2e1f8c..."
+}
 ```
 
-`TransferTimeMs` is **negative** if the file copy failed (absolute value = elapsed time before failure).
-`EncryptionTimeMs` is `0` when no encryption was applied, positive when CryptoSoft succeeds, and negative when CryptoSoft returns an error code.
+`EncryptionTimeMs`: `0` = not encrypted · `>0` = encrypted (ms) · `<0` = CryptoSoft error code
 
 ---
 
-## 8. Design Patterns
+## 10. Design Patterns
 
-| Pattern | Where | Why |
+| Pattern | Where | Purpose |
 |---|---|---|
-| **MVVM** | All 4 projects | Decouples the console UI from business logic. Replacing the console with a WPF window requires no changes to `EasySave.ViewModels` |
-| **Dependency Injection** | `AppBootstrapper` | All services are constructed once and injected via constructors — no `new` inside business classes |
-| **Repository** | `ConfigService` | Abstracts job persistence behind `LoadJobs()` / `SaveJobs()` — the storage format (JSON today, database tomorrow) is hidden from callers |
-| **Facade** | `BackupViewModel` | Single entry point for the view layer — hides the complexity of `BackupService`, `ConfigService` and `LanguageService` behind a simple API |
-| **Chain of Responsibility** | `Logger` + `SecurityHelper` + `LogIntegrityVerifier` | Log entries are SHA-256 chained like a blockchain — each entry's hash depends on the previous one, making any tampering detectable |
+| **MVVM** | All projects | Decouples View from business logic — Console and WPF share the same ViewModel |
+| **Factory** | `ViewModelFactory` | Constructs the entire dependency graph in one place; views never use `new` for services |
+| **Observer** | `ProgressChanged` / `StatusChanged` events | BackupService fires events; GUI subscribes — service has zero knowledge of the UI |
+| **Strategy** | `BackupType` (Full/Differential) | Swap the copy algorithm without modifying BackupService |
+| **Singleton** | `SettingsService` | One shared instance of application settings |
+| **Chain of Responsibility** | `Logger` + `SecurityHelper` | Each log entry hashes the previous one (blockchain-like) — tampering breaks the chain |
 
 ---
 
-## 9. UML Diagrams
+## 11. Testing
 
-Full UML document with explanations: [`docs/UML/Livrable 01 groupe 02.pdf`](docs/UML/Livrable%2001%20groupe%2002.pdf)
+100 unit tests across 5 test classes:
 
-### Use Case Diagram
+| Class | Tests | Covers |
+|---|---|---|
+| `BackupServiceTests` | 11 | Full backup · Differential · Log creation · state.json |
+| `BackupViewModelTests` | 25 | AddJob · RemoveJob · Settings · Pause/Resume · Stop |
+| `EdgeCaseTests` | 20 | Unicode · Boundaries · Rapid actions · v1.1 5-job limit |
+| `LanguageServiceTests` | — | EN/FR key lookup |
+| `V3AuditTests` | 44 | **v3.0 features** — Parallel · Priority · Semaphore · SHA-256 · JSON/XML content · UpdateJob · DuplicateJob · Pause/Resume/Stop · CryptoSoft · ParallelCoordinator |
 
-Covers the two execution modes (interactive menu and CLI) and all user actions: launch, add/remove/execute jobs, change language, quit.
-
-### Class Diagram
-
-Shows all 4 projects as packages with their classes, attributes, methods and relationships. `BackupViewModel` is the central hub, wired to `BackupService`, `ConfigService` and `LanguageService`. `EasyLog` is fully independent.
-
-### Sequence Diagram
-
-Details the full lifecycle: startup → language loading → service initialisation → job loading → execution (with `alt` block for CLI vs interactive) → file loop (copy + log + state update) → final state update → user notification.
-
-### Activity Diagram
-
-Shows the decision flow from launch: CLI arguments present? → parse & execute directly. No arguments? → load language → load config → display menu → user choice → backup execution loop → end.
+```bash
+dotnet test EasySave.Tests/EasySave.Tests.csproj
+# 100 passed  0 failed
+```
 
 ---
 
-## 10. Technical Specifications
+## 12. Technical Specifications
 
 | Item | Detail |
 |---|---|
 | Language | C# |
 | Framework | .NET 8.0 |
-| IDE | Visual Studio 2022 |
-| Architecture | MVVM-inspired layered (4 projects) |
-| Config format | JSON with indentation (`WriteIndented = true`) |
-| Log format | JSON, one file per day, SHA-256 chained |
-| Config location | `%LocalAppData%\ProSoft\EasySave\jobs.json` |
-| Log location | `%LocalAppData%\ProSoft\EasySave\Logs\YYYY-MM-DD.json` |
+| GUI framework | WPF (Windows Presentation Foundation) |
+| Architecture | MVVM — 5 projects + 1 Docker service |
+| Parallelism | `Parallel.ForEach` + `Task.WhenAll` + `ManualResetEventSlim` + `SemaphoreSlim` |
+| Log format | JSON or XML — one file per day — SHA-256 chained |
+| Log locations | Local `%LocalAppData%\ProSoft\EasySave\Logs\` and/or Docker server |
+| Config location | `%AppData%\EasySave\config.json` |
+| Jobs location | `%LocalAppData%\ProSoft\EasySave\jobs.json` |
 | State location | `%LocalAppData%\ProSoft\EasySave\state.json` |
-| Max backup jobs | 5 (v1.0) — unlimited from v2.0 |
-| Backup execution | Sequential |
-| Supported paths | Local drives · External drives · Network paths (UNC) |
-| Languages | English · French |
-| External dependencies | None (only .NET 8.0 BCL) |
-
-### v1.1 Technical Addendum
-
-| Item | Detail |
-|---|---|
-| Log format | JSON or XML, selected by user |
-| Encryption | CryptoSoft executable, applied only to configured extensions |
-| Encryption log field | `EncryptionTimeMs` |
-| Small publish | Framework-dependent `win-x64`, requires .NET 8 Runtime |
+| Encryption | CryptoSoft XOR (external process) — mutex mono-instance |
+| Languages | English · French (switchable at runtime) |
+| CI/CD | GitHub Actions — build + 100 tests + publish on every push |
+| Icon library | MahApps.Metro.IconPacks.Material |
 
 ---
 
-## 11. Roadmap
+## 13. Version History
 
-| Version | Status | Changes |
-|---|---|---|
-| **1.0** | ✅ Released | Console app, 5 jobs, full/differential, logs, state, FR/EN |
-| **1.1** | ✅ Released | JSON/XML log format option, unlimited jobs on this branch |
-| **2.0** | ✅ Released | WPF project, CryptoSoft encryption, encryption-time logs |
-| **3.0** | 🔜 Planned | Play/Pause/Stop per job, advanced scheduling |
+| Version | Branch | Status | Highlights |
+|---|---|---|---|
+| **1.0** | `livrableone` | ✅ Released | Console app, 5 jobs, Full/Differential, JSON log, state.json, EN/FR |
+| **1.1** | `livrable1.1` | ✅ Released | XML log format option |
+| **2.0** | `livrable2` | ✅ Released | WPF GUI, CryptoSoft encryption, business software blocking |
+| **3.0** | `livrable3` | ✅ Released | Parallel execution, priority files, large-file limit, Pause/Resume/Stop, auto-pause on business software, CryptoSoft mono-instance, Docker centralised logs, 100 tests, CI/CD |
 
-### v2.0 Progress Checklist
-
-- Done: WPF project exists.
-- Done: Console and WPF share ViewModels and Models.
-- Done: CryptoSoft is integrated through the backup service.
-- Done: Daily logs include encryption timing.
-- Done: business software detection and blocking.
-- Done: stop-after-current-file behavior when business software appears.
-
-> The `EasySave.ViewModels` layer is already decoupled from the console and will be reused without modification in v2.0.
-
----
-
+See [`docs/ReleaseNote.md`](docs/ReleaseNote.md) for detailed changelogs.

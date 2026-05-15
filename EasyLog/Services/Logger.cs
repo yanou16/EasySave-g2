@@ -194,14 +194,18 @@ namespace EasyLog.Services
 
             try
             {
-                var json = JsonSerializer.Serialize(logEntry);
+                var json    = JsonSerializer.Serialize(logEntry);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                await _httpClient.PostAsync(_dockerUrl, content);
+                // X-Machine-Name lets the Docker server identify which machine sent this entry
+                var request = new HttpRequestMessage(HttpMethod.Post, _dockerUrl) { Content = content };
+                request.Headers.TryAddWithoutValidation("X-Machine-Name", Environment.MachineName);
+
+                await _httpClient.SendAsync(request);
             }
             catch
             {
-                // On ne casse jamais la sauvegarde si Docker est down
+                // Never break the backup if Docker is down
             }
         }
     }
