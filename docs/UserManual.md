@@ -1,108 +1,58 @@
-# EasySave v1.0 — User Manual
+# EasySave 3.0 — User Manual
 
-**Publisher** : ProSoft | **Version** : 1.0.0 | **Date** : April 2026
-
-**v1.1 branch note** : this version keeps the console workflow and adds JSON/XML log selection plus CryptoSoft extension settings.
+**Publisher:** ProSoft &nbsp;|&nbsp; **Version:** 3.0.0 &nbsp;|&nbsp; **Date:** May 2026
 
 ---
 
 ## Installation
 
-**Requirements** : Windows 10 or later · .NET 8.0 Runtime
+**Requirements:** Windows 10 x64 or later — no additional runtime required.
 
-1. Copy the `EasySave.Console/` folder to any location (e.g. `C:\Program Files\ProSoft\EasySave\`).
-2. No installation wizard needed — run `EasySave.Console.exe` directly.
+1. Extract **`EasySave-GUI.zip`** to any folder (e.g. `C:\Program Files\ProSoft\EasySave\`).
+2. Ensure **`CryptoSoft.exe`** stays in the same folder as `EasySave.GUI.exe`.
+3. Double-click **`EasySave.GUI.exe`** to start.
 
-**Data files are stored automatically in:**
-`C:\Users\<you>\AppData\Local\ProSoft\EasySave\`
-
----
-
-## Starting the application
-
-**Interactive menu** — double-click `EasySave.Console.exe` or run:
-```
-EasySave.Console.exe
-```
-On first launch, choose your language: type `en` (English) or `fr` (French).
-
-**Command-line mode** — run specific jobs without the menu:
-```
-EasySave.Console.exe 2        → runs job n°2
-EasySave.Console.exe 1-3      → runs jobs 1, 2 and 3
-EasySave.Console.exe 1;3      → runs jobs 1 and 3
-```
+> Data files are saved automatically to `%LocalAppData%\ProSoft\EasySave\`
 
 ---
 
-## Menu options
+## Backup jobs
 
-| Option | Action |
+| Action | Steps |
 |---|---|
-| **1** | List all configured backup jobs |
-| **2** | Add a new backup job |
-| **3** | Remove a backup job |
-| **4** | Execute one backup job |
-| **5** | Execute all backup jobs sequentially |
-| **6** | Settings |
-| **7** | Quit |
+| **Add** | Click **＋ Add Job** → enter Name, Source folder, Target folder, Type → **Save** |
+| **Edit** | Click ✏ on the job row → modify fields → **Save Changes** |
+| **Delete** | Click 🗑 on the job row |
+| **Run one** | Click ▶ on the job row |
+| **Run all** | Click **▶ Run All** — all jobs run in parallel |
+| **Pause / Resume** | Click ⏸ / ▶ on a running job |
+| **Stop** | Click ⏹ — stops the job immediately |
+
+**Backup types:** `Full` copies every file — `Differential` copies only files changed since the last backup.
+
+> **Note:** If a business application (configured in Settings) is running, all backups pause automatically and resume once it closes.
 
 ---
 
-## Creating a backup job
+## Settings
 
-Select **2**, then fill in:
-
-- **Backup name** — any label (e.g. `My Documents`)
-- **Source directory** — where your files are (local, external drive, or network path)
-- **Target directory** — where copies will be saved
-- **Type** — `1` Full (copies everything) or `2` Differential (copies only changed files)
-
-Jobs are saved automatically. The v1.1 branch supports unlimited configured jobs.
-
----
-
-## Backup types
-
-| Type | Behaviour |
+| Setting | Description |
 |---|---|
-| **Full** | Copies every file from source to target, regardless of changes |
-| **Differential** | Copies only files newer than the existing copy in target |
+| Language | English or French |
+| Log format | `JSON` or `XML` |
+| Business software | Process name to monitor, e.g. `calc.exe` |
+| Priority extensions | Transferred first, e.g. `.pdf;.docx` |
+| Large file limit (KB) | Two files above this size cannot transfer simultaneously |
+| Encrypt extensions | Encrypted via CryptoSoft, e.g. `.txt;.xlsx` |
+| Log destination | `Local` / `Docker` / `Both` |
 
 ---
 
-## Generated files
+## Log files
 
-| File | Location | Description |
-|---|---|---|
-| `jobs.json` | `…\EasySave\` | Your saved backup jobs |
-| `state.json` | `…\EasySave\` | Live progress of the running backup |
-| `YYYY-MM-DD.json` or `YYYY-MM-DD.xml` | `…\EasySave\Logs\` | Full log of every file transferred that day |
+Daily logs are written to `%LocalAppData%\ProSoft\EasySave\Logs\YYYY-MM-DD.json` (or `.xml`).  
+`EncryptionTimeMs`: `0` = not encrypted · `> 0` = encryption time in ms · `< 0` = CryptoSoft error.
 
 ---
 
-## Settings in v1.1
-
-| Setting | Use |
-|---|---|
-| Log format | Choose `JSON` or `XML` for daily logs |
-| CryptoSoft extensions | Enter extensions to encrypt, separated by semicolons, e.g. `.txt;.docx` |
-
-`EncryptionTimeMs` in the daily log means:
-- `0` : no encryption
-- `>0` : encryption time in milliseconds
-- `<0` : CryptoSoft error code
-
-For the small Windows publish, keep `CryptoSoft.exe`, `CryptoSoft.dll`, and its runtime files beside `EasySave.exe`.
-
----
-
-## Support
-
-Default install path: folder containing `EasySave.Console.exe`  
-Config & logs: `%LocalAppData%\ProSoft\EasySave\`  
-Minimum config: Windows 10 · .NET 8.0 Runtime · 50 MB disk space
-
-Small publish requirement: .NET 8 Runtime must be installed on the client machine.
-
-Contact your system administrator or ProSoft support for any issue.
+*For technical support, contact your system administrator or ProSoft support.*
