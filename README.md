@@ -10,8 +10,7 @@
 | MESSADI Mahmoud | Console UI · Pause/Resume/Stop controls · BackupService v3.0 |
 | RECHAM Wissam | Parallel execution · Priority files · Large-file semaphore |
 | LOUZAZNA Rayane | BusinessSoftwareWatcher · Auto-pause/resume · BackupService v3.0 |
-| BOUYACOUB Rayan | WPF GUI v3.0 · DataGrid · ProgressBars · Toasts · Settings · CI/CD · Tests |
-| Lowsttt | CryptoSoft Mono-instance · Docker log server |
+|BOUYACOUB Rayan | CryptoSoft Mono-instance · Docker log server |
 
 **CI/CD Status** — GitHub Actions runs on every push: build → 100 unit tests → publish Console + GUI artifacts.
 

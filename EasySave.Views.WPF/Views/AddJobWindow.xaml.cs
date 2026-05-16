@@ -66,13 +66,13 @@ namespace EasySave.Views.WPF
 
         private void BtnBrowseSource_Click(object sender, RoutedEventArgs e)
         {
-            string? path = BrowseFolder();
+            string? path = BrowseFolder(TxtSource.Text);
             if (path is not null) TxtSource.Text = path;
         }
 
         private void BtnBrowseTarget_Click(object sender, RoutedEventArgs e)
         {
-            string? path = BrowseFolder();
+            string? path = BrowseFolder(TxtTarget.Text);
             if (path is not null) TxtTarget.Text = path;
         }
 
@@ -158,9 +158,14 @@ namespace EasySave.Views.WPF
                             MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private static string? BrowseFolder()
+        private static string? BrowseFolder(string currentPath = "")
         {
             var dialog = new OpenFolderDialog { Title = "Select a folder" };
+
+            // Open the dialog at the path already typed in the field (if it exists)
+            if (!string.IsNullOrWhiteSpace(currentPath) && Directory.Exists(currentPath))
+                dialog.InitialDirectory = currentPath;
+
             return dialog.ShowDialog() == true ? dialog.FolderName : null;
         }
     }
