@@ -40,6 +40,9 @@ namespace EasySave.Views.WPF
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(StatusText));
                 OnPropertyChanged(nameof(StatusColor));
+                OnPropertyChanged(nameof(StatusBackground));
+                OnPropertyChanged(nameof(ProgressColor));
+                OnPropertyChanged(nameof(IsRunning));
                 OnPropertyChanged(nameof(CanPause));
                 OnPropertyChanged(nameof(CanResume));
                 OnPropertyChanged(nameof(CanStop));
@@ -66,6 +69,22 @@ namespace EasySave.Views.WPF
             BackupRuntimeStatus.Error    => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),  // red
             _                            => new SolidColorBrush(Color.FromRgb(0x9C, 0xA3, 0xAF))   // grey
         };
+
+        /// <summary>Background brush for the status badge (same colour as StatusColor but used as bg with white text).</summary>
+        public Brush StatusBackground => StatusColor;
+
+        /// <summary>Progress bar foreground colour matches job status.</summary>
+        public Brush ProgressColor => _status switch
+        {
+            BackupRuntimeStatus.Paused   => new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00)),  // orange
+            BackupRuntimeStatus.Finished => new SolidColorBrush(Color.FromRgb(0x43, 0xA0, 0x47)),  // green
+            BackupRuntimeStatus.Error    => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),  // red
+            BackupRuntimeStatus.Stopped  => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),  // red
+            _                            => new SolidColorBrush(Color.FromRgb(0x21, 0x96, 0xF3))   // blue (Running/Idle)
+        };
+
+        /// <summary>True when the job is actively running — used to lock Edit/Delete in the toolbar.</summary>
+        public bool IsRunning => _status == BackupRuntimeStatus.Running || _status == BackupRuntimeStatus.Paused;
 
         // Button visibility helpers
         public bool CanPause  => _status == BackupRuntimeStatus.Running;

@@ -15,7 +15,40 @@ namespace EasySave.Views.WPF
             InitializeComponent();
             _viewModel = viewModel;
             _language  = language;
+            ApplyLanguage();
             LoadCurrentSettings();
+        }
+
+        private void ApplyLanguage()
+        {
+            Title                      = _language.Get("MenuSettings");
+            TxtSettingsTitle.Text      = _language.Get("MenuSettings");
+
+            TxtSectionLogFormat.Text   = _language.Get("SectionLogFormat");
+            TxtSectionLanguage.Text    = _language.Get("SectionLanguage");
+
+            TxtSectionBusiness.Text    = _language.Get("SectionBusiness");
+            TxtHintBusiness.Text       = _language.Get("HintBusiness");
+
+            TxtSectionCrypto.Text      = _language.Get("SectionCrypto");
+            TxtHintCrypto.Text         = _language.Get("HintCrypto");
+
+            TxtSectionPriority.Text    = _language.Get("PriorityExtensions").ToUpper();
+            TxtHintPriority.Text       = _language.Get("HintPriority");
+
+            TxtSectionMaxSize.Text     = _language.Get("MaxFileSizeKb").ToUpper();
+            TxtHintMaxSize.Text        = _language.Get("HintMaxSize");
+
+            TxtSectionLogDest.Text     = _language.Get("SectionLogDest");
+
+            RbLogLocal.Content         = _language.Get("LogDestLocal");
+            RbLogDocker.Content        = _language.Get("LogDestDocker");
+            RbLogBoth.Content          = _language.Get("LogDestBoth");
+
+            TxtSectionDockerUrl.Text   = _language.Get("SectionDockerUrl");
+            TxtHintDockerUrl.Text      = _language.Get("HintDockerUrl");
+
+            BtnSave.Content            = _language.Get("ButtonSave");
         }
 
         private void LoadCurrentSettings()

@@ -77,5 +77,38 @@
   "DockerUrl": "Docker Log Server URL",
   "LogDestLocal": "Local",
   "LogDestDocker": "Docker",
-  "LogDestBoth": "Both"
+  "LogDestBoth": "Both",
+  "MenuBackupJobs": "Backup Jobs",
+  "SubtitleDashboard": "Overview of your backup activity",
+  "SubtitleJobs": "Create, edit and run your backup jobs",
+
+  "NavMenuLabel": "MENU",
+  "NavDashboard": "Dashboard",
+  "NavLogs": "Logs",
+
+  "LangLabel": "Language",
+
+  "DashboardTitle": "Dashboard",
+  "DashStatTotal": "Total Jobs",
+  "DashStatRunning": "Running",
+  "DashStatCompleted": "Completed",
+  "DashStatErrors": "Errors",
+  "DashJobsOverview": "Backup Jobs Overview",
+  "DashManageJobs": "Manage Jobs",
+  "DashCreateFirstJob": "＋ Create First Job",
+
+  "GlobalControls": "Global:",
+  "BtnAddFirstJob": "＋ Add First Job",
+
+  "SectionLogFormat": "LOG FORMAT",
+  "SectionLanguage": "LANGUAGE",
+  "SectionBusiness": "BUSINESS SOFTWARE",
+  "HintBusiness": "Process name without .exe — e.g. calc;Teams (semicolon-separated)",
+  "SectionCrypto": "CRYPTO EXTENSIONS",
+  "HintCrypto": "Extensions to encrypt — e.g. .txt;.docx;.pdf",
+  "HintPriority": "Copied first during parallel execution — e.g. .pdf;.docx",
+  "HintMaxSize": "Large files above this limit transfer one at a time. 0 = no limit.",
+  "SectionLogDest": "LOG DESTINATION",
+  "SectionDockerUrl": "DOCKER LOG SERVER URL",
+  "HintDockerUrl": "e.g. http://localhost:5000/logs  (used when destination is Docker or Both)"
 }

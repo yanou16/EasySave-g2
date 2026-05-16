@@ -1,39 +1,39 @@
-name: CI – Build & Tests
+name: CI – Build, Test & Release
 
 on:
   push:
-    branches: ["**"]          # run on every push to every branch
+    branches: ["**"]        # build + test on every push
+    tags:     ["v*"]        # AND create a GitHub Release when a vX.Y.Z tag is pushed
   pull_request:
     branches: ["**"]
 
+permissions:
+  contents: write           # needed by softprops/action-gh-release to create releases
+
 jobs:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # 1 · BUILD & TEST
+  # ══════════════════════════════════════════════════════════════════════════
   build-and-test:
     name: Build & Run Tests
     runs-on: windows-latest   # WPF requires Windows
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Setup .NET 8 ───────────────────────────────────────────────────
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
 
-      # ── 3. Restore NuGet packages ──────────────────────────────────────────
       - name: Restore dependencies
         run: dotnet restore EasySave.sln
 
-      # ── 4. Build entire solution (includes WPF — requires windows-latest) ──
       - name: Build solution (Release)
         run: dotnet build EasySave.sln --configuration Release --no-restore
 
-      # ── 5. Run unit + integration tests ───────────────────────────────────
-      # NOTE: dotnet test rebuilds the test project internally — do NOT pass
-      # --no-build here because the previous step may output to a different
-      # intermediate path than the test runner expects.
       - name: Run tests
         run: >
           dotnet test EasySave.Tests/EasySave.Tests.csproj
@@ -42,15 +42,13 @@ jobs:
           --logger "trx;LogFileName=test-results.trx"
           --collect:"XPlat Code Coverage"
 
-      # ── 6. Upload test results artifact ───────────────────────────────────
       - name: Upload test results
-        if: always()           # upload even if tests fail so we can see the report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: "**/*.trx"
 
-      # ── 7. Upload code coverage report ────────────────────────────────────
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,11 +56,13 @@ jobs:
           name: coverage-report
           path: "**/coverage.cobertura.xml"
 
-  # ── Publish Console v1.1 (win-x64 self-contained) ─────────────────────────
+  # ══════════════════════════════════════════════════════════════════════════
+  # 2 · PUBLISH CONSOLE v3.0  (only if tests pass)
+  # ══════════════════════════════════════════════════════════════════════════
   publish-console:
-    name: Publish Console v1.1
+    name: Publish Console v3.0
     runs-on: windows-latest
-    needs: build-and-test      # only publish if all tests pass
+    needs: build-and-test
 
     steps:
       - uses: actions/checkout@v4
@@ -79,12 +79,14 @@ jobs:
       - name: Upload Console artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EasySave-Console
+          name: EasySave-Console-v3
           path: publish/console/
 
-  # ── Publish GUI v2.0 (win-x64 self-contained) ─────────────────────────────
+  # ══════════════════════════════════════════════════════════════════════════
+  # 3 · PUBLISH GUI v3.0  (only if tests pass)
+  # ══════════════════════════════════════════════════════════════════════════
   publish-gui:
-    name: Publish GUI v2.0
+    name: Publish GUI v3.0
     runs-on: windows-latest
     needs: build-and-test
 
@@ -106,5 +108,43 @@ jobs:
       - name: Upload GUI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EasySave-GUI
+          name: EasySave-GUI-v3
           path: publish/gui/
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # 4 · CREATE GITHUB RELEASE  (only on tag push, only if publish jobs pass)
+  # ══════════════════════════════════════════════════════════════════════════
+  release:
+    name: Create GitHub Release
+    runs-on: windows-latest
+    needs: [publish-console, publish-gui]
+    if: startsWith(github.ref, 'refs/tags/v')   # only on vX.Y.Z tags
+
+    steps:
+      - name: Download Console artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EasySave-Console-v3
+          path: artifacts/console
+
+      - name: Download GUI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EasySave-GUI-v3
+          path: artifacts/gui
+
+      - name: Zip Console build
+        run: Compress-Archive -Path artifacts/console/* -DestinationPath EasySave-Console-${{ github.ref_name }}.zip
+
+      - name: Zip GUI build
+        run: Compress-Archive -Path artifacts/gui/* -DestinationPath EasySave-GUI-${{ github.ref_name }}.zip
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "EasySave ${{ github.ref_name }}"
+          generate_release_notes: true     # auto-generates changelog from commits
+          files: |
+            EasySave-Console-${{ github.ref_name }}.zip
+            EasySave-GUI-${{ github.ref_name }}.zip

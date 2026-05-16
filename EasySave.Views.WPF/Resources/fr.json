@@ -77,5 +77,38 @@
   "DockerUrl": "URL serveur Docker",
   "LogDestLocal": "Local",
   "LogDestDocker": "Docker",
-  "LogDestBoth": "Les deux"
+  "LogDestBoth": "Les deux",
+  "MenuBackupJobs": "Sauvegardes",
+  "SubtitleDashboard": "Vue d'ensemble de votre activité de sauvegarde",
+  "SubtitleJobs": "Créer, modifier et exécuter vos travaux de sauvegarde",
+
+  "NavMenuLabel": "MENU",
+  "NavDashboard": "Tableau de bord",
+  "NavLogs": "Journaux",
+
+  "LangLabel": "Langue",
+
+  "DashboardTitle": "Tableau de bord",
+  "DashStatTotal": "Travaux totaux",
+  "DashStatRunning": "En cours",
+  "DashStatCompleted": "Terminés",
+  "DashStatErrors": "Erreurs",
+  "DashJobsOverview": "Vue d'ensemble des sauvegardes",
+  "DashManageJobs": "Gérer les travaux",
+  "DashCreateFirstJob": "＋ Créer le premier travail",
+
+  "GlobalControls": "Global :",
+  "BtnAddFirstJob": "＋ Ajouter le premier travail",
+
+  "SectionLogFormat": "FORMAT DES LOGS",
+  "SectionLanguage": "LANGUE",
+  "SectionBusiness": "LOGICIEL MÉTIER",
+  "HintBusiness": "Nom du processus sans .exe — ex. calc;Teams (séparé par des points-virgules)",
+  "SectionCrypto": "EXTENSIONS CHIFFRÉES",
+  "HintCrypto": "Extensions à chiffrer — ex. .txt;.docx;.pdf",
+  "HintPriority": "Copiées en priorité lors de l'exécution parallèle — ex. .pdf;.docx",
+  "HintMaxSize": "Les fichiers volumineux dépassant cette limite sont transférés un par un. 0 = pas de limite.",
+  "SectionLogDest": "DESTINATION DES LOGS",
+  "SectionDockerUrl": "URL SERVEUR DOCKER",
+  "HintDockerUrl": "ex. http://localhost:5000/logs  (utilisé si destination = Docker ou Les deux)"
 }

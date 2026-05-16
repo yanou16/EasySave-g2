@@ -3,27 +3,31 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:ctrl="clr-namespace:EasySave.Views.WPF.Controls"
-        Title="EasySave" Height="640" Width="1100"
-        MinHeight="520" MinWidth="800"
+        Title="EasySave" Height="720" Width="1240"
+        MinHeight="620" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
         Background="#F0F2F5">
 
     <Window.Resources>
 
-        <!-- ── Colour palette ──────────────────────────────────────────────── -->
-        <SolidColorBrush x:Key="NavyBrush"      Color="#1E3A5F"/>
+        <!-- ── Colour palette ──────────────────────────────────────────── -->
+        <SolidColorBrush x:Key="SidebarBrush"   Color="#1A1F2E"/>
         <SolidColorBrush x:Key="AccentBrush"    Color="#2196F3"/>
-        <SolidColorBrush x:Key="DangerBrush"    Color="#E53935"/>
-        <SolidColorBrush x:Key="SuccessBrush"   Color="#43A047"/>
+        <SolidColorBrush x:Key="DangerBrush"    Color="#F44336"/>
+        <SolidColorBrush x:Key="SuccessBrush"   Color="#4CAF50"/>
         <SolidColorBrush x:Key="WarnBrush"      Color="#FF9800"/>
-        <SolidColorBrush x:Key="SurfaceBrush"   Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="BorderBrush2"   Color="#E0E0E0"/>
-        <SolidColorBrush x:Key="TextPrimBrush"  Color="#1A1A2E"/>
+        <SolidColorBrush x:Key="TextPrimBrush"  Color="#111827"/>
         <SolidColorBrush x:Key="TextMutedBrush" Color="#6B7280"/>
+        <SolidColorBrush x:Key="BorderColor"    Color="#E5E7EB"/>
 
-        <!-- ── Shared round button template ─────────────────────────────────── -->
-        <ControlTemplate x:Key="RoundBtnTemplate" TargetType="Button">
+        <!-- Card shadow -->
+        <DropShadowEffect x:Key="CardShadow" BlurRadius="16" ShadowDepth="2"
+                          Direction="270" Opacity="0.07" Color="Black"/>
+
+        <!-- ── Round button template ──────────────────────────────────── -->
+        <ControlTemplate x:Key="RoundBtnTpl" TargetType="Button">
             <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                    CornerRadius="8" Padding="{TemplateBinding Padding}">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -31,70 +35,60 @@
                     <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                    <Setter TargetName="Bd" Property="Opacity" Value="0.70"/>
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter TargetName="Bd" Property="Background" Value="#BDBDBD"/>
-                    <Setter TargetName="Bd" Property="Opacity" Value="0.6"/>
+                    <Setter TargetName="Bd" Property="Background" Value="#D1D5DB"/>
+                    <Setter TargetName="Bd" Property="Opacity" Value="0.55"/>
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
 
-        <!-- Accent (blue) button -->
+        <!-- Filled buttons -->
         <Style x:Key="BtnAccent" TargetType="Button">
             <Setter Property="Background"      Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground"      Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding"         Value="14,7"/>
+            <Setter Property="Padding"         Value="16,8"/>
             <Setter Property="FontSize"        Value="13"/>
             <Setter Property="FontWeight"      Value="SemiBold"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Template"        Value="{StaticResource RoundBtnTemplate}"/>
+            <Setter Property="Template"        Value="{StaticResource RoundBtnTpl}"/>
         </Style>
-
-        <!-- Danger (red) button -->
-        <Style x:Key="BtnDanger" TargetType="Button" BasedOn="{StaticResource BtnAccent}">
+        <Style x:Key="BtnDanger"  TargetType="Button" BasedOn="{StaticResource BtnAccent}">
             <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
         </Style>
-
-        <!-- Success (green) button -->
         <Style x:Key="BtnSuccess" TargetType="Button" BasedOn="{StaticResource BtnAccent}">
             <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
         </Style>
-
-        <!-- Warning (orange) button -->
-        <Style x:Key="BtnWarn" TargetType="Button" BasedOn="{StaticResource BtnAccent}">
+        <Style x:Key="BtnWarn"    TargetType="Button" BasedOn="{StaticResource BtnAccent}">
             <Setter Property="Background" Value="{StaticResource WarnBrush}"/>
         </Style>
 
-        <!-- Ghost (outline) button -->
+        <!-- Ghost button -->
         <Style x:Key="BtnGhost" TargetType="Button">
-            <Setter Property="Background"       Value="Transparent"/>
-            <Setter Property="Foreground"       Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush"      Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderThickness"  Value="1.5"/>
-            <Setter Property="Padding"          Value="14,6"/>
-            <Setter Property="FontSize"         Value="13"/>
-            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding"         Value="16,7"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Cursor"          Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#E3F2FD"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#BBDEFB"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -102,27 +96,26 @@
             </Setter>
         </Style>
 
-        <!-- Small icon button (used for per-row Pause/Resume/Stop) -->
+        <!-- Small icon button (per-row) -->
         <Style x:Key="BtnIconSm" TargetType="Button">
-            <Setter Property="Width"           Value="28"/>
-            <Setter Property="Height"          Value="28"/>
+            <Setter Property="Width"           Value="30"/>
+            <Setter Property="Height"          Value="30"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize"        Value="14"/>
             <Setter Property="Cursor"          Value="Hand"/>
             <Setter Property="Margin"          Value="2,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                CornerRadius="5" Padding="4">
+                                CornerRadius="6" Padding="5">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.78"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.25"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.20"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -130,384 +123,620 @@
             </Setter>
         </Style>
 
-        <!-- ── DataGrid styles ──────────────────────────────────────────────── -->
+        <!-- Sidebar nav button -->
+        <Style x:Key="NavBtn" TargetType="Button">
+            <Setter Property="Background"                Value="Transparent"/>
+            <Setter Property="Foreground"                Value="#9CA3AF"/>
+            <Setter Property="BorderThickness"           Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding"                   Value="18,11"/>
+            <Setter Property="FontSize"                  Value="14"/>
+            <Setter Property="Cursor"                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="10" Margin="10,2"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FFFFFF1A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── DataGrid ───────────────────────────────────────────────── -->
         <Style TargetType="DataGrid">
             <Setter Property="Background"               Value="White"/>
             <Setter Property="BorderThickness"          Value="0"/>
             <Setter Property="GridLinesVisibility"      Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#F0F0F0"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#F3F4F6"/>
             <Setter Property="RowBackground"            Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#FAFAFA"/>
+            <Setter Property="AlternatingRowBackground" Value="#FAFBFC"/>
             <Setter Property="HeadersVisibility"        Value="Column"/>
             <Setter Property="CanUserResizeRows"        Value="False"/>
             <Setter Property="CanUserAddRows"           Value="False"/>
             <Setter Property="SelectionMode"            Value="Extended"/>
             <Setter Property="FocusVisualStyle"         Value="{x:Null}"/>
         </Style>
-
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background"      Value="#1E3A5F"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="Padding"         Value="12,9"/>
+            <Setter Property="Background"      Value="#F9FAFB"/>
+            <Setter Property="Foreground"      Value="#374151"/>
+            <Setter Property="Padding"         Value="16,10"/>
             <Setter Property="FontWeight"      Value="SemiBold"/>
             <Setter Property="FontSize"        Value="12"/>
-            <Setter Property="BorderBrush"     Value="#2A4A6F"/>
-            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="BorderBrush"     Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>
-
         <Style TargetType="DataGridRow">
-            <Setter Property="Height" Value="46"/>
+            <Setter Property="Height" Value="52"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#E3F2FD"/>
+                    <Setter Property="Background" Value="#EFF6FF"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F5F9FF"/>
+                    <Setter Property="Background" Value="#F9FAFB"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
-
         <Style TargetType="DataGridCell">
-            <Setter Property="Padding"          Value="10,0"/>
-            <Setter Property="BorderThickness"  Value="0"/>
+            <Setter Property="Padding"           Value="12,0"/>
+            <Setter Property="BorderThickness"   Value="0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FontSize"         Value="13"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FontSize"          Value="13"/>
+            <Setter Property="FocusVisualStyle"  Value="{x:Null}"/>
         </Style>
 
     </Window.Resources>
 
     <Grid>
-        <!-- Main content grid -->
         <Grid x:Name="MainContent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>   <!-- Header/navbar -->
-            <RowDefinition Height="Auto"/> <!-- Toolbar row 1: CRUD + Execute -->
-            <RowDefinition Height="Auto"/> <!-- Toolbar row 2: Global Pause/Resume/Stop -->
-            <RowDefinition Height="*"/>    <!-- Job list -->
-            <RowDefinition Height="36"/>   <!-- Status bar -->
-        </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════════════
-             Row 0 — Header
-        ══════════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="0" Background="#1E3A5F">
-            <DockPanel Margin="20,0" VerticalAlignment="Center">
+            <!-- ══════════════════════════════════════════════════════════
+                 SIDEBAR
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Column="0" Background="#1A1F2E">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- Logo + app name -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="38" Height="38" CornerRadius="8"
-                            Background="#2196F3" Margin="0,0,12,0">
-                        <TextBlock Text="ES" Foreground="White" FontWeight="Bold"
-                                   FontSize="15" HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock x:Name="TxtAppTitle" Text="EasySave" Foreground="White"
-                                   FontSize="18" FontWeight="Bold" LineHeight="20"/>
-                        <TextBlock Text="v3.0 – ProSoft" Foreground="#90CAF9" FontSize="11"/>
+                <!-- Logo -->
+                <Border Grid.Row="0" Padding="18,22,18,18"
+                        BorderBrush="#FFFFFF15" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="42" Height="42" CornerRadius="10"
+                                Background="#2196F3" Margin="0,0,12,0">
+                            <TextBlock Text="ES" Foreground="White" FontWeight="Bold"
+                                       FontSize="16" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="EasySave" Foreground="White"
+                                       FontSize="17" FontWeight="Bold"/>
+                            <TextBlock Text="v3.0 · ProSoft" Foreground="#4B5563" FontSize="11"/>
+                        </StackPanel>
                     </StackPanel>
+                </Border>
+
+                <!-- Nav items -->
+                <StackPanel Grid.Row="1" Margin="0,18,0,0">
+                    <TextBlock x:Name="TxtNavMenuLabel" Text="MENU" Foreground="#374151"
+                               FontSize="10" FontWeight="Bold" Margin="30,0,0,10"/>
+
+                    <Button x:Name="NavDashboard" Style="{StaticResource NavBtn}"
+                            Click="NavDashboard_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ViewDashboard"
+                                Width="18" Height="18" Margin="0,0,14,0" VerticalAlignment="Center"
+                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <TextBlock x:Name="TxtNavDashboard" VerticalAlignment="Center"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="NavJobs" Style="{StaticResource NavBtn}"
+                            Click="NavJobs_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Briefcase"
+                                Width="18" Height="18" Margin="0,0,14,0" VerticalAlignment="Center"
+                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <TextBlock x:Name="TxtNavJobs" VerticalAlignment="Center"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="NavLogs" Style="{StaticResource NavBtn}"
+                            Click="NavLogs_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FileDocument"
+                                Width="18" Height="18" Margin="0,0,14,0" VerticalAlignment="Center"
+                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <TextBlock x:Name="TxtNavLogs" VerticalAlignment="Center"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Background="#FFFFFF15" Margin="18,14"/>
+
+                    <Button x:Name="NavSettings" Style="{StaticResource NavBtn}"
+                            Click="NavSettings_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Cog"
+                                Width="18" Height="18" Margin="0,0,14,0" VerticalAlignment="Center"
+                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <TextBlock x:Name="TxtNavSettings" VerticalAlignment="Center"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
-                <!-- Right side: job count + language -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                            VerticalAlignment="Center" HorizontalAlignment="Right">
+                <!-- Bottom: language + copyright -->
+                <Border Grid.Row="2" Padding="16,14"
+                        BorderBrush="#FFFFFF15" BorderThickness="0,1,0,0">
+                    <StackPanel>
+                        <TextBlock x:Name="TxtLangLabel" Foreground="#4B5563"
+                                   FontSize="11" Margin="2,0,0,5"/>
+                        <ComboBox x:Name="CmbLanguage"
+                                  SelectionChanged="CmbLanguage_SelectionChanged">
+                            <ComboBoxItem Content="English" Tag="en"/>
+                            <ComboBoxItem Content="Français" Tag="fr"/>
+                        </ComboBox>
+                        <TextBlock Text="ProSoft © 2026" Foreground="#374151"
+                                   FontSize="11" Margin="0,10,0,0"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-                    <Border x:Name="BadgeJobs" CornerRadius="12"
-                            Background="#2196F3" Padding="12,4" Margin="0,0,20,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="TxtJobCount" Text="0"
-                                       Foreground="White" FontWeight="Bold" FontSize="13"/>
-                            <TextBlock Text=" jobs" Foreground="#E3F2FD" FontSize="13"/>
+            <!-- ══════════════════════════════════════════════════════════
+                 CONTENT AREA
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Column="1" Background="#F0F2F5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="68"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="36"/>
+                </Grid.RowDefinitions>
+
+                <!-- Page header -->
+                <Border Grid.Row="0" Background="White"
+                        BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                    <DockPanel Margin="28,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtPageTitle" FontSize="19"
+                                       FontWeight="Bold" Foreground="#111827"/>
+                            <TextBlock x:Name="TxtPageSubtitle"
+                                       Foreground="#6B7280" FontSize="12"/>
+                        </StackPanel>
+                        <Border DockPanel.Dock="Right" CornerRadius="20"
+                                Background="#EFF6FF" Padding="14,5"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="TxtJobCount" Text="0"
+                                           Foreground="#2196F3" FontWeight="Bold" FontSize="14"/>
+                                <TextBlock Text=" jobs" Foreground="#6B7280" FontSize="13"/>
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <!-- ─── DASHBOARD PAGE ─── -->
+                <Grid x:Name="PageDashboard" Grid.Row="1" Visibility="Visible">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24,22,24,22">
+
+                            <!-- 4 stat cards -->
+                            <UniformGrid Columns="4" Margin="0,0,0,20">
+
+                                <Border Margin="0,0,10,0" Background="White" CornerRadius="12"
+                                        Effect="{StaticResource CardShadow}">
+                                    <StackPanel Margin="20,18">
+                                        <Border Width="40" Height="40" CornerRadius="10"
+                                                Background="#EFF6FF" HorizontalAlignment="Left" Margin="0,0,0,14">
+                                            <iconPacks:PackIconMaterial Kind="Briefcase" Width="20" Height="20"
+                                                Foreground="#2196F3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock x:Name="StatTotal" Text="0"
+                                                   FontSize="34" FontWeight="Bold" Foreground="#111827"/>
+                                        <TextBlock x:Name="TxtStatTotalLabel" Foreground="#6B7280" FontSize="12" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="5,0" Background="White" CornerRadius="12"
+                                        Effect="{StaticResource CardShadow}">
+                                    <StackPanel Margin="20,18">
+                                        <Border Width="40" Height="40" CornerRadius="10"
+                                                Background="#E8F5E9" HorizontalAlignment="Left" Margin="0,0,0,14">
+                                            <iconPacks:PackIconMaterial Kind="Play" Width="20" Height="20"
+                                                Foreground="#4CAF50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock x:Name="StatRunning" Text="0"
+                                                   FontSize="34" FontWeight="Bold" Foreground="#4CAF50"/>
+                                        <TextBlock x:Name="TxtStatRunningLabel" Foreground="#6B7280" FontSize="12" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="5,0" Background="White" CornerRadius="12"
+                                        Effect="{StaticResource CardShadow}">
+                                    <StackPanel Margin="20,18">
+                                        <Border Width="40" Height="40" CornerRadius="10"
+                                                Background="#E8F5E9" HorizontalAlignment="Left" Margin="0,0,0,14">
+                                            <iconPacks:PackIconMaterial Kind="CheckCircle" Width="20" Height="20"
+                                                Foreground="#4CAF50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock x:Name="StatFinished" Text="0"
+                                                   FontSize="34" FontWeight="Bold" Foreground="#111827"/>
+                                        <TextBlock x:Name="TxtStatCompletedLabel" Foreground="#6B7280" FontSize="12" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="10,0,0,0" Background="White" CornerRadius="12"
+                                        Effect="{StaticResource CardShadow}">
+                                    <StackPanel Margin="20,18">
+                                        <Border Width="40" Height="40" CornerRadius="10"
+                                                Background="#FFEBEE" HorizontalAlignment="Left" Margin="0,0,0,14">
+                                            <iconPacks:PackIconMaterial Kind="AlertCircle" Width="20" Height="20"
+                                                Foreground="#F44336" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock x:Name="StatErrors" Text="0"
+                                                   FontSize="34" FontWeight="Bold" Foreground="#F44336"/>
+                                        <TextBlock x:Name="TxtStatErrorsLabel" Foreground="#6B7280" FontSize="12" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                            </UniformGrid>
+
+                            <!-- Jobs overview card -->
+                            <Border Background="White" CornerRadius="12"
+                                    Effect="{StaticResource CardShadow}">
+                                <StackPanel>
+                                    <DockPanel Margin="22,18,22,0">
+                                        <TextBlock x:Name="TxtDashOverviewTitle" FontSize="15"
+                                                   FontWeight="SemiBold" Foreground="#111827"
+                                                   VerticalAlignment="Center"/>
+                                        <Button DockPanel.Dock="Right"
+                                                Style="{StaticResource BtnAccent}"
+                                                Padding="14,6" Click="NavJobs_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock x:Name="TxtBtnManageJobs"/>
+                                                <iconPacks:PackIconMaterial Kind="ArrowRight"
+                                                    Width="14" Height="14" Foreground="White"
+                                                    Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DockPanel>
+                                    <Separator Margin="0,14,0,0" Background="#F3F4F6"/>
+
+                                    <DataGrid x:Name="DashJobsGrid"
+                                              AutoGenerateColumns="False"
+                                              IsReadOnly="True" MaxHeight="300"
+                                              CanUserSortColumns="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Name"
+                                                Binding="{Binding Name}" Width="*"/>
+                                            <DataGridTextColumn Header="Type"
+                                                Binding="{Binding Type}" Width="110"/>
+                                            <DataGridTemplateColumn Header="Status" Width="110">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{Binding StatusBackground}"
+                                                                CornerRadius="10" Padding="10,3"
+                                                                Margin="6,0" HorizontalAlignment="Left"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding StatusText}"
+                                                                       Foreground="White"
+                                                                       FontWeight="SemiBold" FontSize="11"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTemplateColumn Header="Progress" Width="160">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Margin="8,0" VerticalAlignment="Center">
+                                                            <ProgressBar Value="{Binding Progress}" Minimum="0" Maximum="100"
+                                                                         Height="6" Margin="0,0,0,2"
+                                                                         Foreground="{Binding ProgressColor}"
+                                                                         Background="#E5E7EB"/>
+                                                            <TextBlock Text="{Binding ProgressText}"
+                                                                       FontSize="10" Foreground="#9CA3AF"
+                                                                       HorizontalAlignment="Right"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <!-- Empty state -->
+                                    <StackPanel x:Name="DashEmptyState" Margin="0,36,0,36"
+                                                HorizontalAlignment="Center" Visibility="Collapsed">
+                                        <iconPacks:PackIconMaterial Kind="FolderOpen"
+                                            Width="52" Height="52" Foreground="#D1D5DB"
+                                            HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtDashEmpty"
+                                                   Text="No backup jobs yet."
+                                                   Foreground="#9CA3AF" FontSize="14"
+                                                   HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                        <Button x:Name="BtnDashCreate"
+                                                Style="{StaticResource BtnAccent}"
+                                                Margin="0,16,0,0" Padding="20,9"
+                                                Click="NavJobs_Click"
+                                                HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- ─── JOBS PAGE ─── -->
+                <Grid x:Name="PageJobs" Grid.Row="1" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Toolbar -->
+                    <Border Grid.Row="0" Background="White"
+                            BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                        <WrapPanel Margin="20,10" VerticalAlignment="Center">
+
+                            <Button x:Name="BtnAdd" Style="{StaticResource BtnAccent}"
+                                    Margin="0,0,8,0" Click="BtnAdd_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Plus" Width="14" Height="14"
+                                        Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnAdd" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="BtnEdit" Style="{StaticResource BtnGhost}"
+                                    Margin="0,0,8,0" Click="BtnEdit_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Pencil" Width="14" Height="14"
+                                        Foreground="{StaticResource AccentBrush}"
+                                        Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnEdit" Foreground="{StaticResource AccentBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="BtnRemove" Style="{StaticResource BtnDanger}"
+                                    Margin="0,0,20,0" Click="BtnRemove_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Delete" Width="14" Height="14"
+                                        Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnRemove" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Separator Width="1" Background="#E5E7EB" Margin="0,4,20,4"/>
+
+                            <Button x:Name="BtnExecute" Style="{StaticResource BtnSuccess}"
+                                    Margin="0,0,8,0" Click="BtnExecute_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Play" Width="14" Height="14"
+                                        Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnExecute" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="BtnExecuteAll" Style="{StaticResource BtnSuccess}"
+                                    Click="BtnExecuteAll_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="PlayCircle" Width="14" Height="14"
+                                        Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnExecuteAll" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Search -->
+                            <Border Height="36" Width="220" Margin="16,0,0,0"
+                                    Background="#F9FAFB" BorderBrush="#E5E7EB"
+                                    BorderThickness="1" CornerRadius="8">
+                                <Grid>
+                                    <iconPacks:PackIconMaterial Kind="Magnify" Width="14" Height="14"
+                                        Foreground="#9CA3AF" Margin="10,0,0,0"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="TxtSearch" Background="Transparent"
+                                             BorderThickness="0" Padding="32,0,10,0"
+                                             VerticalContentAlignment="Center" FontSize="13"
+                                             TextChanged="TxtSearch_TextChanged"/>
+                                </Grid>
+                            </Border>
+
+                        </WrapPanel>
+                    </Border>
+
+                    <!-- Global controls -->
+                    <Border Grid.Row="1" Background="#FAFAFA"
+                            BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal" Margin="20,7">
+                            <TextBlock x:Name="TxtGlobalControls" Foreground="#6B7280"
+                                       FontSize="12" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <Button x:Name="BtnPauseAll"  Style="{StaticResource BtnWarn}"
+                                    Margin="0,0,8,0" Padding="12,6" Click="BtnPauseAll_Click"/>
+                            <Button x:Name="BtnResumeAll" Style="{StaticResource BtnSuccess}"
+                                    Margin="0,0,8,0" Padding="12,6" Click="BtnResumeAll_Click"/>
+                            <Button x:Name="BtnStopAll"   Style="{StaticResource BtnDanger}"
+                                    Padding="12,6"   Click="BtnStopAll_Click"/>
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Text="Lang:" Foreground="#90CAF9"
-                               FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <ComboBox x:Name="CmbLanguage" Width="100"
-                              VerticalAlignment="Center"
-                              SelectionChanged="CmbLanguage_SelectionChanged">
-                        <ComboBoxItem Content="English" Tag="en"/>
-                        <ComboBoxItem Content="Français" Tag="fr"/>
-                    </ComboBox>
-                </StackPanel>
+                    <!-- DataGrid card -->
+                    <Border Grid.Row="2" Margin="20,16,20,16"
+                            CornerRadius="12" ClipToBounds="True"
+                            Background="White" Effect="{StaticResource CardShadow}">
+                        <Grid>
+                            <DataGrid x:Name="JobsGrid"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserSortColumns="True"
+                                      MouseDoubleClick="JobsGrid_MouseDoubleClick"
+                                      SelectionChanged="JobsGrid_SelectionChanged"
+                                      KeyDown="JobsGrid_KeyDown">
 
-            </DockPanel>
-        </Border>
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu x:Name="RowContextMenu">
+                                        <MenuItem x:Name="MnuCtxExecute" Click="MnuCtxExecute_Click">
+                                            <MenuItem.Icon>
+                                                <iconPacks:PackIconMaterial Kind="Play" Width="14" Height="14" Foreground="#4CAF50"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem x:Name="MnuCtxEdit" Click="MnuCtxEdit_Click">
+                                            <MenuItem.Icon>
+                                                <iconPacks:PackIconMaterial Kind="Pencil" Width="14" Height="14" Foreground="#2196F3"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem x:Name="MnuCtxDuplicate" Click="MnuCtxDuplicate_Click">
+                                            <MenuItem.Icon>
+                                                <iconPacks:PackIconMaterial Kind="ContentCopy" Width="14" Height="14" Foreground="#6B7280"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem x:Name="MnuCtxRemove" Click="MnuCtxRemove_Click">
+                                            <MenuItem.Icon>
+                                                <iconPacks:PackIconMaterial Kind="Delete" Width="14" Height="14" Foreground="#F44336"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
 
-        <!-- ══════════════════════════════════════════════════════════════════
-             Row 1 — Toolbar: Add / Remove / Execute / Execute All / Settings
-        ══════════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="1" Background="White"
-                BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="16,8" VerticalAlignment="Center">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn x:Name="ColId"
+                                        Header="#" Binding="{Binding Id}" Width="48"/>
+                                    <DataGridTextColumn x:Name="ColName"
+                                        Header="Name" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn x:Name="ColSource"
+                                        Header="Source" Binding="{Binding SourceDirectory}" Width="1.5*"/>
+                                    <DataGridTextColumn x:Name="ColTarget"
+                                        Header="Target" Binding="{Binding TargetDirectory}" Width="1.5*"/>
+                                    <DataGridTextColumn x:Name="ColType"
+                                        Header="Type" Binding="{Binding Type}" Width="110"/>
+                                    <DataGridTemplateColumn x:Name="ColStatus" Header="Status"
+                                        Width="110" SortMemberPath="StatusText">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding StatusBackground}"
+                                                        CornerRadius="10" Padding="10,3"
+                                                        Margin="6,0" HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StatusText}"
+                                                               Foreground="White"
+                                                               FontWeight="SemiBold" FontSize="11"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn x:Name="ColProgress" Header="Progress"
+                                        Width="150" SortMemberPath="Progress">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="8,0" VerticalAlignment="Center">
+                                                    <ProgressBar Value="{Binding Progress}" Minimum="0" Maximum="100"
+                                                                 Height="8" Margin="0,0,0,2"
+                                                                 Foreground="{Binding ProgressColor}"
+                                                                 Background="#E5E7EB"/>
+                                                    <TextBlock Text="{Binding ProgressText}"
+                                                               FontSize="10" Foreground="#9CA3AF"
+                                                               HorizontalAlignment="Right"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn x:Name="ColActions" Header="Actions" Width="110">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center">
+                                                    <Button Style="{StaticResource BtnIconSm}"
+                                                            Background="#FF9800"
+                                                            IsEnabled="{Binding CanPause}"
+                                                            Tag="{Binding Id}"
+                                                            Click="BtnRowPause_Click" ToolTip="Pause">
+                                                        <iconPacks:PackIconMaterial Kind="Pause" Width="12" Height="12" Foreground="White"/>
+                                                    </Button>
+                                                    <Button Style="{StaticResource BtnIconSm}"
+                                                            Background="#4CAF50"
+                                                            IsEnabled="{Binding CanResume}"
+                                                            Tag="{Binding Id}"
+                                                            Click="BtnRowResume_Click" ToolTip="Resume">
+                                                        <iconPacks:PackIconMaterial Kind="Play" Width="12" Height="12" Foreground="White"/>
+                                                    </Button>
+                                                    <Button Style="{StaticResource BtnIconSm}"
+                                                            Background="#F44336"
+                                                            IsEnabled="{Binding CanStop}"
+                                                            Tag="{Binding Id}"
+                                                            Click="BtnRowStop_Click" ToolTip="Stop">
+                                                        <iconPacks:PackIconMaterial Kind="Stop" Width="12" Height="12" Foreground="White"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
 
-                <Button x:Name="BtnAdd"        Style="{StaticResource BtnAccent}"
-                        Margin="0,0,8,0"       Click="BtnAdd_Click"
-                        ToolTip="Add a new backup job (Ctrl+N)"/>
-                <Button x:Name="BtnEdit"       Style="{StaticResource BtnAccent}"
-                        Margin="0,0,8,0"       Click="BtnEdit_Click"
-                        ToolTip="Edit selected job (Ctrl+E or double-click)"/>
-                <Button x:Name="BtnRemove"     Style="{StaticResource BtnDanger}"
-                        Margin="0,0,16,0"      Click="BtnRemove_Click"
-                        ToolTip="Remove selected job(s) (Del)"/>
+                            <!-- Empty state -->
+                            <StackPanel x:Name="EmptyState"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Visibility="Visible">
+                                <iconPacks:PackIconMaterial Kind="FolderOpen"
+                                    Width="52" Height="52" Foreground="#D1D5DB"
+                                    HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtEmptyState"
+                                           Foreground="#9CA3AF" FontSize="14"
+                                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                <Button Style="{StaticResource BtnAccent}"
+                                        Margin="0,16,0,0" Padding="20,9"
+                                        HorizontalAlignment="Center"
+                                        Click="BtnAdd_Click">
+                                    <TextBlock x:Name="TxtBtnAddFirstJob"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
 
-                <Separator Width="1" Background="#E0E0E0" Margin="0,4,16,4"/>
-
-                <Button x:Name="BtnExecute"    Style="{StaticResource BtnSuccess}"
-                        Margin="0,0,8,0"       Click="BtnExecute_Click"
-                        ToolTip="Execute selected job(s) (F5)"/>
-                <Button x:Name="BtnExecuteAll" Style="{StaticResource BtnSuccess}"
-                        Margin="0,0,16,0"      Click="BtnExecuteAll_Click"
-                        ToolTip="Execute all jobs (F6)"/>
-
-                <Separator Width="1" Background="#E0E0E0" Margin="0,4,16,4"/>
-
-                <Button x:Name="BtnSettings"   Style="{StaticResource BtnGhost}"
-                        Click="BtnSettings_Click"
-                        ToolTip="Settings (Ctrl+,)"/>
-
-                <!-- Search box (right-aligned via spacer) -->
-                <Border Width="240" Height="36"
-                        Margin="20,0,0,0"
-                        Background="#F3F4F6"
-                        BorderBrush="#E0E0E0" BorderThickness="1"
-                        CornerRadius="6">
-                    <TextBox x:Name="TxtSearch"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             VerticalContentAlignment="Center"
-                             Padding="10,0"
-                             FontSize="13"
-                             TextChanged="TxtSearch_TextChanged"
-                             ToolTip="Search jobs by name (Ctrl+F)"/>
+                <!-- Status bar -->
+                <Border Grid.Row="2" Background="White"
+                        BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+                    <DockPanel Margin="20,0" VerticalAlignment="Center">
+                        <Ellipse x:Name="StatusDot" Width="8" Height="8"
+                                 Fill="#9CA3AF" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="StatusText" Foreground="#6B7280"
+                                   FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtSelectedCount"
+                                   DockPanel.Dock="Right"
+                                   Foreground="#2196F3" FontSize="12"
+                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </DockPanel>
                 </Border>
 
-            </StackPanel>
-        </Border>
-
-        <!-- ══════════════════════════════════════════════════════════════════
-             Row 2 — Toolbar: Global Pause All / Resume All / Stop All
-        ══════════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="2" Background="#F8F9FA"
-                BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="16,6" VerticalAlignment="Center">
-
-                <TextBlock Text="Global:" Foreground="#6B7280" FontSize="12"
-                           VerticalAlignment="Center" Margin="0,0,12,0"/>
-
-                <Button x:Name="BtnPauseAll"  Style="{StaticResource BtnWarn}"
-                        Margin="0,0,8,0"      Click="BtnPauseAll_Click"/>
-                <Button x:Name="BtnResumeAll" Style="{StaticResource BtnSuccess}"
-                        Margin="0,0,8,0"      Click="BtnResumeAll_Click"/>
-                <Button x:Name="BtnStopAll"   Style="{StaticResource BtnDanger}"
-                        Click="BtnStopAll_Click"/>
-
-            </StackPanel>
-        </Border>
-
-        <!-- ══════════════════════════════════════════════════════════════════
-             Row 3 — Job list (card)
-        ══════════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="3" Margin="16,10,16,0"
-                CornerRadius="8" ClipToBounds="True"
-                BorderBrush="#E0E0E0" BorderThickness="1"
-                Background="White">
-            <Grid>
-                <!-- DataGrid -->
-                <DataGrid x:Name="JobsGrid"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          CanUserSortColumns="True"
-                          MouseDoubleClick="JobsGrid_MouseDoubleClick"
-                          SelectionChanged="JobsGrid_SelectionChanged"
-                          KeyDown="JobsGrid_KeyDown">
-
-                    <!-- Right-click context menu on rows -->
-                    <DataGrid.ContextMenu>
-                        <ContextMenu x:Name="RowContextMenu">
-                            <MenuItem x:Name="MnuCtxExecute" Click="MnuCtxExecute_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconMaterial Kind="Play" Width="14" Height="14" Foreground="#43A047"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="MnuCtxEdit" Click="MnuCtxEdit_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconMaterial Kind="Pencil" Width="14" Height="14" Foreground="#2196F3"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="MnuCtxDuplicate" Click="MnuCtxDuplicate_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconMaterial Kind="ContentCopy" Width="14" Height="14" Foreground="#6B7280"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="MnuCtxRemove" Click="MnuCtxRemove_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconMaterial Kind="Delete" Width="14" Height="14" Foreground="#E53935"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-
-                    <DataGrid.Columns>
-
-                        <!-- # Id -->
-                        <DataGridTextColumn x:Name="ColId"
-                            Header="#"
-                            Binding="{Binding Id}"
-                            Width="40"/>
-
-                        <!-- Name -->
-                        <DataGridTextColumn x:Name="ColName"
-                            Header="Name"
-                            Binding="{Binding Name}"
-                            Width="*"/>
-
-                        <!-- Source -->
-                        <DataGridTextColumn x:Name="ColSource"
-                            Header="Source"
-                            Binding="{Binding SourceDirectory}"
-                            Width="1.6*"/>
-
-                        <!-- Target -->
-                        <DataGridTextColumn x:Name="ColTarget"
-                            Header="Target"
-                            Binding="{Binding TargetDirectory}"
-                            Width="1.6*"/>
-
-                        <!-- Type -->
-                        <DataGridTextColumn x:Name="ColType"
-                            Header="Type"
-                            Binding="{Binding Type}"
-                            Width="100"/>
-
-                        <!-- Status (colored text) -->
-                        <DataGridTemplateColumn x:Name="ColStatus" Header="Status" Width="90"
-                                                SortMemberPath="StatusText">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding StatusText}"
-                                               Foreground="{Binding StatusColor}"
-                                               FontWeight="SemiBold" FontSize="12"
-                                               VerticalAlignment="Center"
-                                               Margin="10,0"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <!-- Progress bar -->
-                        <DataGridTemplateColumn x:Name="ColProgress" Header="Progress" Width="140"
-                                                SortMemberPath="Progress">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="8,0" VerticalAlignment="Center">
-                                        <ProgressBar Value="{Binding Progress}" Minimum="0" Maximum="100"
-                                                     Height="8" Margin="0,0,0,2"
-                                                     Foreground="#2196F3" Background="#E0E0E0"/>
-                                        <TextBlock Text="{Binding ProgressText}"
-                                                   FontSize="10" Foreground="#6B7280"
-                                                   HorizontalAlignment="Right"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <!-- Per-row Actions: Pause / Resume / Stop -->
-                        <DataGridTemplateColumn x:Name="ColActions" Header="Actions" Width="106">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal"
-                                                VerticalAlignment="Center"
-                                                HorizontalAlignment="Center"
-                                                Margin="4,0">
-
-                                        <!-- Pause -->
-                                        <Button Style="{StaticResource BtnIconSm}"
-                                                Background="#FF9800"
-                                                IsEnabled="{Binding CanPause}"
-                                                Tag="{Binding Id}"
-                                                Click="BtnRowPause_Click"
-                                                ToolTip="Pause">
-                                            <iconPacks:PackIconMaterial Kind="Pause"
-                                                                        Width="13" Height="13"
-                                                                        Foreground="White"/>
-                                        </Button>
-
-                                        <!-- Resume -->
-                                        <Button Style="{StaticResource BtnIconSm}"
-                                                Background="#43A047"
-                                                IsEnabled="{Binding CanResume}"
-                                                Tag="{Binding Id}"
-                                                Click="BtnRowResume_Click"
-                                                ToolTip="Resume">
-                                            <iconPacks:PackIconMaterial Kind="Play"
-                                                                        Width="13" Height="13"
-                                                                        Foreground="White"/>
-                                        </Button>
-
-                                        <!-- Stop -->
-                                        <Button Style="{StaticResource BtnIconSm}"
-                                                Background="#E53935"
-                                                IsEnabled="{Binding CanStop}"
-                                                Tag="{Binding Id}"
-                                                Click="BtnRowStop_Click"
-                                                ToolTip="Stop">
-                                            <iconPacks:PackIconMaterial Kind="Stop"
-                                                                        Width="13" Height="13"
-                                                                        Foreground="White"/>
-                                        </Button>
-
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                    </DataGrid.Columns>
-                </DataGrid>
-
-                <!-- Empty state overlay (hidden when jobs exist) -->
-                <StackPanel x:Name="EmptyState"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Visibility="Visible">
-                    <TextBlock Text="📂" FontSize="40"
-                               HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBlock x:Name="TxtEmptyState"
-                               Text="No backup jobs yet. Click 'Add Job' to get started."
-                               Foreground="#9CA3AF" FontSize="14"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
             </Grid>
-        </Border>
-
-        <!-- ══════════════════════════════════════════════════════════════════
-             Row 4 — Status bar
-        ══════════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="4" Background="#F8F9FA"
-                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-            <DockPanel Margin="16,0" VerticalAlignment="Center">
-                <Ellipse x:Name="StatusDot" Width="8" Height="8"
-                         Fill="Gray" Margin="0,0,8,0"/>
-                <TextBlock x:Name="StatusText" Text="Ready"
-                           Foreground="#6B7280" FontSize="12" VerticalAlignment="Center"/>
-
-                <!-- Selected count (centered) -->
-                <TextBlock x:Name="TxtSelectedCount"
-                           DockPanel.Dock="Right" Margin="0,0,16,0"
-                           Foreground="#2196F3" FontSize="12" FontWeight="SemiBold"
-                           VerticalAlignment="Center"/>
-
-                <TextBlock DockPanel.Dock="Right" Text="ProSoft © 2025"
-                           Foreground="#D1D5DB" FontSize="11"
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-            </DockPanel>
-        </Border>
-
         </Grid>
-        <!-- Toast notification overlay (sits on top of everything) -->
-        <ctrl:ToastHost x:Name="Toasts" Panel.ZIndex="1000"/>
 
+        <!-- Toast overlay -->
+        <ctrl:ToastHost x:Name="Toasts" Panel.ZIndex="1000"/>
     </Grid>
 </Window>

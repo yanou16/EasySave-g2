@@ -80,6 +80,8 @@ namespace EasySave.Views.WPF
 
         private void BtnAdd_Click(object sender, RoutedEventArgs e)
         {
+            // Prevent double-submit on rapid clicks (test case #9)
+            BtnAdd.IsEnabled = false;
             TxtError.Text = string.Empty;
 
             // 1. Presence
@@ -123,6 +125,9 @@ namespace EasySave.Views.WPF
                 ShowError($"{_language.Get("InvalidTargetPath")}\n\n\"{tgt}\"");
                 return;
             }
+
+            // Re-enable the button in case of validation error so user can fix and retry
+            BtnAdd.IsEnabled = true;
 
             // 5. Empty source folder → non-blocking confirmation
             bool hasFiles = Directory.EnumerateFiles(src, "*", SearchOption.AllDirectories).Any();
